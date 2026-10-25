@@ -4,642 +4,685 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GET NDP 💗</title>
+<title>Get NDP — 2048</title>
 
 <style>
 :root {
-  --pink: #f5a6cf;
-  --dark-pink: #d84e99;
-  --cell: #f9dce9;
+  --bg: #fff9fc;
+  --ink: #776e65;
+  --board: #e8c4d4;
+  --empty: #f7e9ef;
+  --pink: #d85c91;
+  --pink-dark: #b74478;
+  --tile: #fff4f8;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  padding: 24px 12px;
-  background: linear-gradient(135deg, #fff4fa, #f9d9eb);
-  color: #8f2863;
-  font-family: Arial, Helvetica, sans-serif;
-  text-align: center;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+  font-size: 18px;
 }
 
-h1 {
-  margin: 4px 0;
-  font-size: clamp(38px, 8vw, 60px);
-  font-weight: 900;
-  letter-spacing: 2px;
+.page {
+  width: min(500px, calc(100vw - 28px));
+  margin: 28px auto 40px;
 }
-
-.subtitle { margin: 8px 0 18px; }
 
 .top {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+h1 {
+  font-size: clamp(36px, 9vw, 58px);
+  line-height: 1;
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: var(--pink-dark);
+}
+
+.scores {
+  display: flex;
+  gap: 5px;
+}
+
+.scorebox {
+  background: #d6a2b9;
+  color: white;
+  min-width: 78px;
+  padding: 7px 12px 5px;
+  text-align: center;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+.scorebox small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: #fff5f8;
+}
+
+.scorebox span {
+  font-size: 24px;
+  line-height: 1.35;
+}
+
+.above {
+  margin: 14px 0 18px;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
 }
 
-.score {
-  background: white;
-  border-radius: 12px;
-  padding: 10px 18px;
-  min-width: 95px;
-  font-weight: bold;
-  box-shadow: 0 3px 10px #d77eaa33;
-}
-
-.score small {
-  display: block;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: #b45b8a;
+.above p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.35;
 }
 
 button {
   border: 0;
-  border-radius: 12px;
-  padding: 12px 17px;
-  background: var(--dark-pink);
+  border-radius: 3px;
+  background: var(--pink);
   color: white;
+  font-size: 16px;
   font-weight: bold;
+  padding: 10px 14px;
   cursor: pointer;
 }
 
-button:hover { filter: brightness(1.05); }
+button:hover { background: var(--pink-dark); }
 
-#board {
-  position: relative;
-  width: min(92vw, 430px);
-  aspect-ratio: 1;
-  margin: 0 auto;
+.board {
+  background: var(--board);
   padding: 10px;
-  background: #eeb5d1;
-  border-radius: 17px;
-  box-shadow: 0 8px 24px #b65c8d33;
-  overflow: hidden;
+  border-radius: 3px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  aspect-ratio: 1;
+  position: relative;
+  isolation: isolate;
   touch-action: none;
 }
 
-#cells {
+.cell {
+  min-width: 0;
+  min-height: 0;
+  background: var(--empty);
+  border-radius: 2px;
+  grid-row: var(--r);
+  grid-column: var(--c);
+}
+
+.tile-layer {
   position: absolute;
   inset: 10px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  gap: 9px;
-}
-
-.cell {
-  background: var(--cell);
-  border-radius: 10px;
-}
-
-#tiles {
-  position: absolute;
-  inset: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 10px;
   pointer-events: none;
 }
 
 .tile {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: calc((100% - 27px) / 4);
-  height: calc((100% - 27px) / 4);
+  grid-row: var(--r);
+  grid-column: var(--c);
+  min-width: 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  padding: 4px;
-  background: white;
-  box-shadow: 0 3px 8px #a9437830;
-  transform: translate(0, 0);
-  transition: transform 160ms ease-in-out;
+  position: relative;
+  padding: 6px;
+  border-radius: 2px;
+  background: var(--tile);
+  transition: transform 115ms ease-in-out;
   will-change: transform;
+  overflow: hidden;
 }
 
 .tile img {
-  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 7px;
-  pointer-events: none;
+  mix-blend-mode: multiply;
 }
 
-.tile.spawn {
-  animation: appear 140ms ease-out;
+.tile .fallback {
+  font-size: clamp(9px, 2.5vw, 15px);
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.05;
+  color: #776e65;
+  overflow-wrap: anywhere;
 }
 
-.tile.merge {
-  animation: mergePop 180ms ease-out;
+.tile[data-level="1"] { background: #fce8f0; }
+.tile[data-level="2"] { background: #f8d9e6; }
+.tile[data-level="3"] { background: #f5c4da; }
+.tile[data-level="4"] { background: #f0a8c8; }
+.tile[data-level="5"] { background: #eb8fb8; }
+.tile[data-level="6"] { background: #e878a9; }
+.tile[data-level="7"] { background: #e56a9e; }
+.tile[data-level="8"] { background: #df5d92; }
+.tile[data-level="9"] { background: #d94e88; }
+.tile[data-level="10"] { background: #cc4380; }
+.tile[data-level="11"] { background: #bc3976; }
+
+.tile.merged {
+  animation: pop 130ms ease-out;
 }
 
-@keyframes appear {
-  from { opacity: .6; scale: .75; }
-  to { opacity: 1; scale: 1; }
+@keyframes pop {
+  50% { scale: 1.06; }
 }
 
-@keyframes mergePop {
-  0% { scale: 1; }
-  55% { scale: 1.12; }
-  100% { scale: 1; }
+.notes {
+  margin-top: 20px;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
-.message {
-  min-height: 24px;
-  margin: 14px 0 8px;
+.notes strong { color: #776e65; }
+
+.panel {
+  margin-top: 20px;
+  border-top: 1px solid #ead5df;
+  padding-top: 14px;
+}
+
+.panel summary {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.editor {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.logo-row {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid #f0dfe7;
+}
+
+.logo-row .schoolname {
+  font-size: 14px;
   font-weight: bold;
 }
 
-.instructions {
-  max-width: 430px;
-  margin: 12px auto;
-  line-height: 1.5;
-  font-size: 14px;
+.logo-row img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 8px;
 }
 
-footer {
-  margin-top: 25px;
+.logo-row input {
   font-size: 12px;
-  color: #a24a7a;
+  max-width: 100%;
+}
+
+.small {
+  font-size: 13px;
+  color: #8a8178;
+  line-height: 1.4;
+}
+
+@media (max-width: 420px) {
+  .page { margin-top: 18px; }
+  .scorebox { min-width: 64px; padding: 5px 8px; }
+  .scorebox span { font-size: 20px; }
+  .board { gap: 7px; padding: 7px; }
+  .tile-layer { inset: 7px; gap: 7px; }
+  .tile { padding: 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile { transition-duration: 1ms; }
+  .tile { transition: none; }
+  .tile.merged { animation: none; }
 }
 </style>
 </head>
 
 <body>
-  <h1>GET NDP</h1>
-  <p class="subtitle">merge the schools 💗</p>
+<main class="page">
 
-  <div class="top">
-    <div class="score">
-      <small>SCORE</small>
+<header class="top">
+  <h1>Get NDP</h1>
+  <div class="scores">
+    <div class="scorebox">
+      <small>Score</small>
       <span id="score">0</span>
     </div>
-    <div class="score">
-      <small>BEST</small>
+    <div class="scorebox">
+      <small>Best</small>
       <span id="best">0</span>
     </div>
-    <button id="restart">New Game ↻</button>
   </div>
+</header>
 
-  <div id="board" aria-label="GET NDP game board">
-    <div id="cells"></div>
-    <div id="tiles"></div>
-  </div>
+<section class="above">
+  <p><strong>Merge your way to NDP.</strong><br>
+  Match two of the same school to move up the ladder.</p>
+  <button id="newgame">New Game</button>
+</section>
 
-  <div class="message" id="message"></div>
+<div id="board" class="board" role="grid"
+     aria-label="School 2048 game board">
+  <div id="background" style="display:contents"></div>
+  <div id="tileLayer" class="tile-layer"></div>
+</div>
 
-  <p class="instructions">
-    Use your arrow keys or swipe to move the logos.
-    Merge matching schools to work your way up to NDP!
+<p class="notes">
+  <strong>Created by Cate Graham.</strong><br>
+  <strong>How to play:</strong> Use the arrow keys or WASD.
+  On a phone, swipe across the board.
+  Matching schools merge into the next school.
+  Reach NDP to win!
+</p>
+
+<details class="panel">
+  <summary>Upload school logos</summary>
+  <p class="small">
+    Upload replacement logos if needed. Changes are saved in this
+    browser on this device.
   </p>
+  <div id="editor" class="editor"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+    <button id="save">Save logos</button>
+    <button id="resetlogos" type="button">Clear logos</button>
+  </div>
+  <p id="status" class="small" aria-live="polite"></p>
+</details>
 
-  <footer>Created by Cate Graham</footer>
+</main>
 
 <script>
-(() => {
-  const schools = [
-    { name: "St. Ursula's", file: "images_sus.jpg" },
-    { name: "ICS", file: "ICS-Logo.jpg" },
-    { name: "St. Philip Neri", file: "images_spn.png" },
-    { name: "Maryvale", file: "images_maryvale.jpg" },
-    { name: "Catholic High", file: "images.jpg" },
-    { name: "Bryn Mawr", file: "bryn-mawr-school.jpg" },
-    { name: "RCPS", file: "Rpcs_logo2.png" },
-    { name: "John Carroll", file: "The_John_Carroll_School_Logo.jpeg" },
-    { name: "Mercy", file: "MHS_Seal_ONLY.jpg" },
-    { name: "Mount de Sales", file: "Mount_de_Sales_Academy_Logo.png" },
-    { name: "NDP", file: "images_ndp.jpg" }
-  ];
-
-  const SIZE = 4;
-  const MOVE_TIME = 160;
-
-  const boardEl = document.getElementById("board");
-  const tilesEl = document.getElementById("tiles");
-  const cellsEl = document.getElementById("cells");
-  const scoreEl = document.getElementById("score");
-  const bestEl = document.getElementById("best");
-  const messageEl = document.getElementById("message");
-
-  let board = [];
-  let score = 0;
-  let best = Number(localStorage.getItem("getNdpBest") || 0);
-  let nextId = 1;
-  let busy = false;
-  let touchStart = null;
-  let resizeTimer;
-
-  bestEl.textContent = best;
-
-  for (let i = 0; i < SIZE * SIZE; i++) {
-    const cell = document.createElement("div");
-    cell.className = "cell";
-    cellsEl.appendChild(cell);
+// Exact school merge progression.
+// Keep the logos folder and filenames exactly as listed here.
+const schools = [
+  {
+    name: "Saint Philip Neri",
+    short: "SPN",
+    value: 2,
+    logo: "logos/images_spn.png"
+  },
+  {
+    name: "St. Ursula's",
+    short: "ST. URSULA'S",
+    value: 4,
+    logo: "logos/images_sus.jpg"
+  },
+  {
+    name: "ICS",
+    short: "ICS",
+    value: 8,
+    logo: "logos/ICS-Logo.jpg"
+  },
+  {
+    name: "John Carroll",
+    short: "JOHN CARROLL",
+    value: 16,
+    logo: "logos/The_John_Carroll_School_Logo.jpeg"
+  },
+  {
+    name: "RCPS",
+    short: "RCPS",
+    value: 32,
+    logo: "logos/Rpcs_logo2.png"
+  },
+  {
+    name: "Mount de Sales",
+    short: "MOUNT DE SALES",
+    value: 64,
+    logo: "logos/Mount_de_Sales_Academy_Logo.png"
+  },
+  {
+    name: "Catholic High",
+    short: "CATHOLIC HIGH",
+    value: 128,
+    logo: "logos/images.jpg"
+  },
+  {
+    name: "Bryn Mawr",
+    short: "BRYN MAWR",
+    value: 256,
+    logo: "logos/bryn-mawr-school.jpg"
+  },
+  {
+    name: "Mercy",
+    short: "MERCY",
+    value: 512,
+    logo: "logos/MHS_Seal_ONLY.jpg"
+  },
+  {
+    name: "Maryvale",
+    short: "MARYVALE",
+    value: 1024,
+    logo: "logos/images_maryvale.jpg"
+  },
+  {
+    name: "Notre Dame Preparatory",
+    short: "NDP",
+    value: 2048,
+    logo: "logos/images_ndp.jpg"
   }
+];
 
-  function emptyBoard() {
-    return Array.from({ length: SIZE }, () =>
-      Array(SIZE).fill(null)
-    );
-  }
+const key = "getNDPClassicLogosV5";
+let logos = {};
 
-  function makeTile(level, row, col) {
-    return { id: nextId++, level, row, col };
-  }
+try {
+  logos = JSON.parse(localStorage.getItem(key) || "{}");
+} catch (e) {}
 
-  function addRandomTile() {
-    const empty = [];
+let nextId = 1;
+let board = Array(16).fill(null);
+let score = 0;
+let best = Number(localStorage.getItem("getNDPBest") || 0);
+let won = false;
 
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
-        if (!board[r][c]) empty.push([r, c]);
-      }
-    }
+const el = id => document.getElementById(id);
+const schoolFor = value => schools.find(s => s.value === value);
+const level = value => Math.max(1, Math.round(Math.log2(value / 2)) + 1);
 
-    if (!empty.length) return;
+function tileHTML(tile, index) {
+  const school = schoolFor(tile.value);
+  if (!school) return "";
 
-    const [r, c] = empty[Math.floor(Math.random() * empty.length)];
-    const level = Math.random() < 0.9 ? 1 : 2;
-    board[r][c] = makeTile(level, r, c);
-  }
+  const src = logos[school.name] || school.logo;
 
-  function cellSize() {
-    return (tilesEl.clientWidth - 27) / 4;
-  }
+  return `
+    <div class="tile"
+         data-id="${tile.id}"
+         data-value="${tile.value}"
+         data-level="${level(tile.value)}"
+         style="--r:${Math.floor(index / 4) + 1};--c:${index % 4 + 1}"
+         title="${school.name}">
+      ${src ? `
+        <img src="${src}" alt="${school.name} logo"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      ` : ""}
+      <div class="fallback" style="${src ? "display:none" : ""}">
+        ${school.short}
+      </div>
+    </div>
+  `;
+}
 
-  function positionFor(row, col) {
-    const step = cellSize() + 9;
-    return `translate(${col * step}px, ${row * step}px)`;
-  }
+function render(animate = true) {
+  const layer = el("tileLayer");
 
-  function createElement(tile, row, col, animateSpawn = true) {
-    const el = document.createElement("div");
-    el.className = "tile";
-    el.dataset.id = tile.id;
-    el.dataset.level = tile.level;
+  // Record each existing tile's screen position before moving it.
+  const oldRects = new Map(
+    [...layer.querySelectorAll(".tile")].map(tile => [
+      tile.dataset.id,
+      tile.getBoundingClientRect()
+    ])
+  );
 
-    const img = document.createElement("img");
-    img.alt = schools[tile.level - 1].name;
-    img.draggable = false;
-    img.src = "logos/" + schools[tile.level - 1].file;
+  layer.innerHTML = board
+    .map((tile, index) => tile ? tileHTML(tile, index) : "")
+    .join("");
 
-    img.onerror = () => {
-      el.title = "Logo image not found: " + img.src;
-      el.style.border = "2px dashed #d84e99";
-    };
+  // Animate each tile from its old position to its new position.
+  for (const tile of layer.querySelectorAll(".tile")) {
+    const old = oldRects.get(tile.dataset.id);
+    if (!old || !animate) continue;
 
-    el.appendChild(img);
-    tilesEl.appendChild(el);
+    const rect = tile.getBoundingClientRect();
+    const dx = old.left - rect.left;
+    const dy = old.top - rect.top;
 
-    // IMPORTANT: position the element BEFORE enabling transitions.
-    // This prevents a new tile from animating out of the top-left corner.
-    el.style.transition = "none";
-    el.style.transform = positionFor(row, col);
-    void el.offsetWidth;
-    el.style.transition = "";
+    if (Math.abs(dx) + Math.abs(dy) > 1) {
+      tile.style.transition = "none";
+      tile.style.transform = `translate(${dx}px, ${dy}px)`;
+      tile.getBoundingClientRect();
 
-    if (animateSpawn) {
-      el.classList.add("spawn");
-      el.addEventListener("animationend", () => {
-        el.classList.remove("spawn");
-      }, { once: true });
-    }
-
-    return el;
-  }
-
-  function render() {
-    const existing = new Map(
-      [...tilesEl.querySelectorAll(".tile")].map(el => [
-        Number(el.dataset.id), el
-      ])
-    );
-
-    const liveIds = new Set();
-
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
-        const tile = board[r][c];
-        if (!tile) continue;
-
-        liveIds.add(tile.id);
-
-        let el = existing.get(tile.id);
-
-        if (!el) {
-          el = createElement(tile, r, c);
-        } else {
-          el.style.transform = positionFor(r, c);
-          updateLogo(el, tile.level);
-        }
-
-        el.title = schools[tile.level - 1].name;
-      }
-    }
-
-    for (const [id, el] of existing) {
-      if (!liveIds.has(id)) el.remove();
-    }
-
-    scoreEl.textContent = score;
-    bestEl.textContent = best;
-  }
-
-  function updateLogo(el, level) {
-    if (Number(el.dataset.level) === level) return;
-
-    const img = el.querySelector("img");
-    img.src = "logos/" + schools[level - 1].file;
-    img.alt = schools[level - 1].name;
-    el.dataset.level = level;
-    el.title = schools[level - 1].name;
-  }
-
-  function move(direction) {
-    if (busy) return;
-
-    const before = board.map(row =>
-      row.map(tile => tile ? { ...tile } : null)
-    );
-
-    const next = emptyBoard();
-    let gained = 0;
-    let changed = false;
-    const mergedIds = new Set();
-
-    for (let line = 0; line < SIZE; line++) {
-      const coords = [];
-
-      for (let i = 0; i < SIZE; i++) {
-        let r, c;
-
-        if (direction === "left") {
-          r = line; c = i;
-        } else if (direction === "right") {
-          r = line; c = SIZE - 1 - i;
-        } else if (direction === "up") {
-          r = i; c = line;
-        } else {
-          r = SIZE - 1 - i; c = line;
-        }
-
-        coords.push([r, c]);
-      }
-
-      const packed = coords
-        .map(([r, c]) => board[r][c])
-        .filter(Boolean);
-
-      const result = [];
-
-      for (let i = 0; i < packed.length; i++) {
-        const current = packed[i];
-        const following = packed[i + 1];
-
-        if (
-          following &&
-          current.level === following.level &&
-          current.level < schools.length
-        ) {
-          // Keep the first tile's ID so its existing element slides.
-          result.push({
-            id: current.id,
-            level: current.level + 1,
-            row: 0,
-            col: 0
-          });
-
-          mergedIds.add(current.id);
-          gained += Math.pow(2, current.level);
-          i++;
-        } else {
-          result.push({
-            id: current.id,
-            level: current.level,
-            row: 0,
-            col: 0
-          });
-        }
-      }
-
-      result.forEach((tile, i) => {
-        const [r, c] = coords[i];
-        tile.row = r;
-        tile.col = c;
-        next[r][c] = tile;
+      requestAnimationFrame(() => {
+        tile.style.transition = "";
+        tile.style.transform = "translate(0, 0)";
       });
     }
-
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
-        const a = before[r][c];
-        const b = next[r][c];
-
-        if (
-          (!a && b) ||
-          (a && !b) ||
-          (a && b && (a.id !== b.id || a.level !== b.level))
-        ) {
-          changed = true;
-        }
-      }
-    }
-
-    if (!changed) return;
-
-    /*
-      Keep existing DOM elements during the move.
-      Move survivors first; update merged logos only after the slide.
-    */
-    const oldLevels = new Map();
-    before.flat().forEach(tile => {
-      if (tile) oldLevels.set(tile.id, tile.level);
-    });
-
-    busy = true;
-    board = next;
-
-    const liveIds = new Set(
-      board.flat().filter(Boolean).map(tile => tile.id)
-    );
-
-    // Remove consumed merge partners, but never recreate survivors.
-    for (const el of [...tilesEl.querySelectorAll(".tile")]) {
-      if (!liveIds.has(Number(el.dataset.id))) el.remove();
-    }
-
-    // Move all surviving tiles using their existing elements.
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
-        const tile = board[r][c];
-        if (!tile) continue;
-
-        let el = tilesEl.querySelector(
-          `[data-id="${tile.id}"]`
-        );
-
-        // Existing survivors should already have elements.
-        // If an element is missing, place it at its destination safely.
-        if (!el) {
-          el = createElement(
-            { ...tile, level: oldLevels.get(tile.id) || tile.level },
-            r, c, false
-          );
-        }
-
-        // Keep the old logo visible during the slide.
-        el.style.transform = positionFor(r, c);
-      }
-    }
-
-    score += gained;
-
-    if (score > best) {
-      best = score;
-      localStorage.setItem("getNdpBest", String(best));
-    }
-
-    scoreEl.textContent = score;
-    bestEl.textContent = best;
-
-    window.setTimeout(() => {
-      // Switch to the new logo after the slide completes.
-      for (const row of board) {
-        for (const tile of row) {
-          if (!tile) continue;
-
-          const el = tilesEl.querySelector(
-            `[data-id="${tile.id}"]`
-          );
-
-          if (!el) continue;
-
-          updateLogo(el, tile.level);
-
-          if (mergedIds.has(tile.id)) {
-            el.classList.add("merge");
-            el.addEventListener("animationend", () => {
-              el.classList.remove("merge");
-            }, { once: true });
-          }
-        }
-      }
-
-      addRandomTile();
-      render();
-      busy = false;
-      checkGameState();
-    }, MOVE_TIME);
   }
 
-  function checkGameState() {
-    const won = board.some(row =>
-      row.some(tile => tile && tile.level === schools.length)
-    );
+  el("score").textContent = score;
+  el("best").textContent = best;
+}
 
-    if (won) {
-      messageEl.textContent = "YOU GOT NDP!! 💗";
-      return;
+function spawn() {
+  const empty = board
+    .map((tile, index) => tile === null ? index : -1)
+    .filter(index => index >= 0);
+
+  if (!empty.length) return;
+
+  const index = empty[Math.floor(Math.random() * empty.length)];
+
+  board[index] = {
+    id: nextId++,
+    value: Math.random() < 0.9 ? 2 : 4
+  };
+}
+
+function start() {
+  board = Array(16).fill(null);
+  score = 0;
+  won = false;
+  spawn();
+  spawn();
+  render(false);
+}
+
+function slideLine(line) {
+  const values = line.filter(Boolean);
+  const output = [];
+
+  for (let i = 0; i < values.length; i++) {
+    if (
+      values[i].value === values[i + 1]?.value &&
+      schoolFor(values[i].value * 2)
+    ) {
+      const mergedValue = values[i].value * 2;
+
+      output.push({
+        id: values[i].id,
+        value: mergedValue
+      });
+
+      score += mergedValue;
+      i++;
+
+      if (mergedValue === 2048 && !won) {
+        won = true;
+        setTimeout(() => alert("YOU GOT NDP! 💗"), 160);
+      }
+    } else {
+      output.push(values[i]);
+    }
+  }
+
+  while (output.length < 4) output.push(null);
+  return output;
+}
+
+function move(direction) {
+  const old = board.map(tile => tile ? { ...tile } : null);
+  const next = Array(16).fill(null);
+
+  for (let n = 0; n < 4; n++) {
+    const indices = [];
+
+    for (let k = 0; k < 4; k++) {
+      if (direction === "left") indices.push(n * 4 + k);
+      if (direction === "right") indices.push(n * 4 + 3 - k);
+      if (direction === "up") indices.push(k * 4 + n);
+      if (direction === "down") indices.push((3 - k) * 4 + n);
     }
 
-    const full = board.every(row => row.every(Boolean));
+    const values = slideLine(indices.map(index => old[index]));
 
-    if (!full) {
-      messageEl.textContent = "";
-      return;
-    }
+    indices.forEach((index, j) => {
+      next[index] = values[j];
+    });
+  }
 
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
-        const tile = board[r][c];
+  const unchanged = next.every((tile, index) =>
+    (tile?.value || 0) === (old[index]?.value || 0)
+  );
 
-        if (
-          (r + 1 < SIZE && board[r + 1][c].level === tile.level) ||
-          (c + 1 < SIZE && board[r][c + 1].level === tile.level)
-        ) {
-          messageEl.textContent = "";
+  if (unchanged) return;
+
+  board = next;
+  spawn();
+
+  best = Math.max(best, score);
+
+  try {
+    localStorage.setItem("getNDPBest", best);
+  } catch (e) {}
+
+  render(true);
+}
+
+document.addEventListener("keydown", event => {
+  const map = {
+    ArrowLeft: "left",
+    a: "left",
+    A: "left",
+    ArrowRight: "right",
+    d: "right",
+    D: "right",
+    ArrowUp: "up",
+    w: "up",
+    W: "up",
+    ArrowDown: "down",
+    s: "down",
+    S: "down"
+  };
+
+  if (
+    map[event.key] &&
+    !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)
+  ) {
+    event.preventDefault();
+    move(map[event.key]);
+  }
+});
+
+let sx = 0;
+let sy = 0;
+
+el("board").addEventListener("touchstart", event => {
+  sx = event.changedTouches[0].screenX;
+  sy = event.changedTouches[0].screenY;
+}, { passive: true });
+
+el("board").addEventListener("touchend", event => {
+  const dx = event.changedTouches[0].screenX - sx;
+  const dy = event.changedTouches[0].screenY - sy;
+
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
+
+  move(
+    Math.abs(dx) > Math.abs(dy)
+      ? (dx > 0 ? "right" : "left")
+      : (dy > 0 ? "down" : "up")
+  );
+}, { passive: true });
+
+el("newgame").onclick = start;
+
+function renderEditor() {
+  el("editor").innerHTML = schools.map((school, index) => `
+    <div class="logo-row">
+      <div>
+        <span class="schoolname">${school.name}</span>
+        <div class="small">
+          ${school.value}${index === schools.length - 1 ? " · final tile" : ""}
+        </div>
+      </div>
+      <div>
+        ${logos[school.name]
+          ? `<img src="${logos[school.name]}" alt="${school.name} logo">`
+          : ""}
+        <input type="file"
+          accept="image/*"
+          aria-label="Upload ${school.name} logo"
+          data-school="${school.name}">
+      </div>
+    </div>
+  `).join("");
+
+  el("editor")
+    .querySelectorAll('input[type="file"]')
+    .forEach(input => {
+      input.addEventListener("change", event => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+          el("status").textContent = "Choose a logo under 2 MB.";
           return;
         }
-      }
-    }
 
-    messageEl.textContent = "Game over! Tap New Game to play again.";
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          logos[event.target.dataset.school] = reader.result;
+          renderEditor();
+          render();
+          el("status").textContent =
+            "Logo loaded. Click Save logos to keep it in this browser.";
+        };
+
+        reader.readAsDataURL(file);
+      });
+    });
+}
+
+el("save").onclick = () => {
+  try {
+    localStorage.setItem(key, JSON.stringify(logos));
+    el("status").textContent = "Saved in this browser.";
+  } catch (e) {
+    el("status").textContent =
+      "Storage is full. Try smaller logo images.";
   }
+};
 
-  function restart() {
-    board = emptyBoard();
-    score = 0;
-    nextId = 1;
-    busy = false;
-    messageEl.textContent = "";
-    tilesEl.innerHTML = "";
-
-    addRandomTile();
-    addRandomTile();
+el("resetlogos").onclick = () => {
+  if (confirm("Clear all uploaded logos from this browser?")) {
+    logos = {};
+    localStorage.removeItem(key);
+    renderEditor();
     render();
+    el("status").textContent = "Logos cleared.";
   }
+};
 
-  document.getElementById("restart").addEventListener("click", restart);
-
-  document.addEventListener("keydown", event => {
-    const directions = {
-      ArrowLeft: "left",
-      ArrowRight: "right",
-      ArrowUp: "up",
-      ArrowDown: "down"
-    };
-
-    if (directions[event.key]) {
-      event.preventDefault();
-      move(directions[event.key]);
-    }
-  });
-
-  boardEl.addEventListener("touchstart", event => {
-    const t = event.changedTouches[0];
-    touchStart = { x: t.clientX, y: t.clientY };
-  }, { passive: true });
-
-  boardEl.addEventListener("touchend", event => {
-    if (!touchStart) return;
-
-    const t = event.changedTouches[0];
-    const dx = t.clientX - touchStart.x;
-    const dy = t.clientY - touchStart.y;
-    touchStart = null;
-
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
-
-    if (Math.abs(dx) > Math.abs(dy)) {
-      move(dx > 0 ? "right" : "left");
-    } else {
-      move(dy > 0 ? "down" : "up");
-    }
-  }, { passive: true });
-
-  if ("ResizeObserver" in window) {
-    const observer = new ResizeObserver(() => {
-      // Avoid repositioning tiles in the middle of an animation.
-      if (!busy) render();
-    });
-    observer.observe(boardEl);
-  } else {
-    window.addEventListener("resize", () => {
-      if (!busy) render();
-    });
-  }
-
-  restart();
-})();
+renderEditor();
+start();
 </script>
 </body>
 </html>
