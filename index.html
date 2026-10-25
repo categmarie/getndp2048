@@ -231,16 +231,37 @@ function dimensions() {
   return { tileSize, gap: GAP };
 }
 
+
 function positionTile(el, index, animate = true) {
   const { tileSize, gap } = dimensions();
   const row = Math.floor(index / SIZE);
   const col = index % SIZE;
 
+  const oldTransform = getComputedStyle(el).transform;
+  const targetTransform =
+    `translate(${col * (tileSize + gap)}px, ${row * (tileSize + gap)}px)`;
+
+  el.style.transition = "none";
   el.style.width = tileSize + "px";
   el.style.height = tileSize + "px";
-  el.style.transition = animate ? "transform 140ms ease-in-out" : "none";
-  el.style.transform =
-    `translate(${col * (tileSize + gap)}px, ${row * (tileSize + gap)}px)`;
+  el.style.transform = targetTransform;
+
+  if (animate && el.dataset.positioned === "true") {
+    el.animate(
+      [
+        { transform: oldTransform === "none" ? targetTransform : oldTransform },
+        { transform: targetTransform }
+      ],
+      {
+        duration: 180,
+        easing: "ease-in-out"
+      }
+    );
+  }
+
+  el.dataset.positioned = "true";
+}
+
 }
 
 function createTile(tile) {
