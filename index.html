@@ -9,7 +9,6 @@
 <style>
 :root {
   --pink: #f5a6cf;
-  --light-pink: #fff0f7;
   --dark-pink: #d84e99;
   --cell: #f9dce9;
 }
@@ -117,24 +116,22 @@ button:hover { filter: brightness(1.05); }
   padding: 4px;
   background: white;
   box-shadow: 0 3px 8px #a9437830;
-
-  /* Smooth movement: keep the same element as the tile moves. */
-  transition: transform 145ms cubic-bezier(.2, .75, .25, 1);
+  transform: translate(0, 0);
+  transition: transform 160ms ease-in-out;
   will-change: transform;
 }
 
 .tile img {
   display: block;
-  max-width: 100%;
-  max-height: 100%;
   width: 100%;
   height: 100%;
   object-fit: contain;
   border-radius: 7px;
+  pointer-events: none;
 }
 
 .tile.spawn {
-  animation: appear 130ms ease-out;
+  animation: appear 140ms ease-out;
 }
 
 .tile.merge {
@@ -142,7 +139,7 @@ button:hover { filter: brightness(1.05); }
 }
 
 @keyframes appear {
-  from { opacity: .5; scale: .7; }
+  from { opacity: .6; scale: .75; }
   to { opacity: 1; scale: 1; }
 }
 
@@ -182,8 +179,14 @@ footer {
   <p class="subtitle">merge the schools 💗</p>
 
   <div class="top">
-    <div class="score"><small>SCORE</small><span id="score">0</span></div>
-    <div class="score"><small>BEST</small><span id="best">0</span></div>
+    <div class="score">
+      <small>SCORE</small>
+      <span id="score">0</span>
+    </div>
+    <div class="score">
+      <small>BEST</small>
+      <span id="best">0</span>
+    </div>
     <button id="restart">New Game ↻</button>
   </div>
 
@@ -193,6 +196,7 @@ footer {
   </div>
 
   <div class="message" id="message"></div>
+
   <p class="instructions">
     Use your arrow keys or swipe to move the logos.
     Merge matching schools to work your way up to NDP!
@@ -202,11 +206,6 @@ footer {
 
 <script>
 (() => {
-  /*
-    IMPORTANT:
-    These image paths must match the names and folder in your
-    GitHub repository. This version expects a folder named "logos".
-  */
   const schools = [
     { name: "St. Ursula's", file: "images_sus.jpg" },
     { name: "ICS", file: "ICS-Logo.jpg" },
@@ -222,6 +221,8 @@ footer {
   ];
 
   const SIZE = 4;
+  const MOVE_TIME = 160;
+
   const boardEl = document.getElementById("board");
   const tilesEl = document.getElementById("tiles");
   const cellsEl = document.getElementById("cells");
@@ -235,11 +236,10 @@ footer {
   let nextId = 1;
   let busy = false;
   let touchStart = null;
-  let resizeObserver;
+  let resizeTimer;
 
   bestEl.textContent = best;
 
-  // Draw the stationary spaces behind the moving logo tiles.
   for (let i = 0; i < SIZE * SIZE; i++) {
     const cell = document.createElement("div");
     cell.className = "cell";
@@ -253,12 +253,7 @@ footer {
   }
 
   function makeTile(level, row, col) {
-    return {
-      id: nextId++,
-      level,
-      row,
-      col
-    };
+    return { id: nextId++, level, row, col };
   }
 
   function addRandomTile() {
@@ -278,15 +273,48 @@ footer {
   }
 
   function cellSize() {
-    const gap = 9;
-    const total = tilesEl.clientWidth;
-    return (total - gap * 3) / 4;
+    return (tilesEl.clientWidth - 27) / 4;
   }
 
   function positionFor(row, col) {
-    const gap = 9;
-    const step = cellSize() + gap;
+    const step = cellSize() + 9;
     return `translate(${col * step}px, ${row * step}px)`;
+  }
+
+  function createElement(tile, row, col, animateSpawn = true) {
+    const el = document.createElement("div");
+    el.className = "tile";
+    el.dataset.id = tile.id;
+    el.dataset.level = tile.level;
+
+    const img = document.createElement("img");
+    img.alt = schools[tile.level - 1].name;
+    img.draggable = false;
+    img.src = "logos/" + schools[tile.level - 1].file;
+
+    img.onerror = () => {
+      el.title = "Logo image not found: " + img.src;
+      el.style.border = "2px dashed #d84e99";
+    };
+
+    el.appendChild(img);
+    tilesEl.appendChild(el);
+
+    // IMPORTANT: position the element BEFORE enabling transitions.
+    // This prevents a new tile from animating out of the top-left corner.
+    el.style.transition = "none";
+    el.style.transform = positionFor(row, col);
+    void el.offsetWidth;
+    el.style.transition = "";
+
+    if (animateSpawn) {
+      el.classList.add("spawn");
+      el.addEventListener("animationend", () => {
+        el.classList.remove("spawn");
+      }, { once: true });
+    }
+
+    return el;
   }
 
   function render() {
@@ -304,51 +332,16 @@ footer {
         if (!tile) continue;
 
         liveIds.add(tile.id);
+
         let el = existing.get(tile.id);
 
         if (!el) {
-          el = document.createElement("div");
-          el.className = "tile";
-          el.dataset.id = tile.id;
-
-          const img = document.createElement("img");
-          img.alt = schools[tile.level - 1].name;
-          img.draggable = false;
-          img.src = "logos/" + schools[tile.level - 1].file;
-
-          img.onerror = () => {
-            img.alt = schools[tile.level - 1].name + " logo unavailable";
-            img.style.display = "none";
-            el.title = "Logo not found: " + img.src;
-            el.style.border = "2px dashed #d84e99";
-          };
-
-          el.appendChild(img);
-          tilesEl.appendChild(el);
-
-          // Start new tiles at their destination; don't send them
-          // to (0,0), which is the top-left corner of the board.
-          el.style.transform = positionFor(r, c);
-          el.classList.add("spawn");
-          el.addEventListener("animationend", () => {
-            el.classList.remove("spawn");
-          }, { once: true });
+          el = createElement(tile, r, c);
         } else {
-          const img = el.querySelector("img");
-          const expectedSrc = new URL(
-            "logos/" + schools[tile.level - 1].file,
-            window.location.href
-          ).href;
-
-          if (img.src !== expectedSrc) {
-            img.src = "logos/" + schools[tile.level - 1].file;
-            img.alt = schools[tile.level - 1].name;
-          }
+          el.style.transform = positionFor(r, c);
+          updateLogo(el, tile.level);
         }
 
-        // Update the position on the same element, allowing CSS
-        // to animate from its previous position to the new one.
-        el.style.transform = positionFor(r, c);
         el.title = schools[tile.level - 1].name;
       }
     }
@@ -361,61 +354,75 @@ footer {
     bestEl.textContent = best;
   }
 
+  function updateLogo(el, level) {
+    if (Number(el.dataset.level) === level) return;
+
+    const img = el.querySelector("img");
+    img.src = "logos/" + schools[level - 1].file;
+    img.alt = schools[level - 1].name;
+    el.dataset.level = level;
+    el.title = schools[level - 1].name;
+  }
+
   function move(direction) {
     if (busy) return;
 
     const before = board.map(row =>
-      row.map(t => t ? { ...t } : null)
+      row.map(tile => tile ? { ...tile } : null)
     );
 
     const next = emptyBoard();
     let gained = 0;
     let changed = false;
+    const mergedIds = new Set();
 
-    // Build each line in movement order.
     for (let line = 0; line < SIZE; line++) {
       const coords = [];
 
       for (let i = 0; i < SIZE; i++) {
         let r, c;
 
-        if (direction === "left")  { r = line; c = i; }
-        if (direction === "right") { r = line; c = SIZE - 1 - i; }
-        if (direction === "up")    { r = i; c = line; }
-        if (direction === "down")  { r = SIZE - 1 - i; c = line; }
+        if (direction === "left") {
+          r = line; c = i;
+        } else if (direction === "right") {
+          r = line; c = SIZE - 1 - i;
+        } else if (direction === "up") {
+          r = i; c = line;
+        } else {
+          r = SIZE - 1 - i; c = line;
+        }
 
         coords.push([r, c]);
       }
 
-      const tiles = coords
+      const packed = coords
         .map(([r, c]) => board[r][c])
         .filter(Boolean);
 
-      const packed = [];
+      const result = [];
 
-      for (let i = 0; i < tiles.length; i++) {
-        const current = tiles[i];
-        const following = tiles[i + 1];
+      for (let i = 0; i < packed.length; i++) {
+        const current = packed[i];
+        const following = packed[i + 1];
 
         if (
           following &&
           current.level === following.level &&
           current.level < schools.length
         ) {
-          // Keep a stable ID for the moving tile. Its new logo is
-          // changed only after the slide finishes.
-          packed.push({
+          // Keep the first tile's ID so its existing element slides.
+          result.push({
             id: current.id,
             level: current.level + 1,
             row: 0,
-            col: 0,
-            merged: true
+            col: 0
           });
 
+          mergedIds.add(current.id);
           gained += Math.pow(2, current.level);
           i++;
         } else {
-          packed.push({
+          result.push({
             id: current.id,
             level: current.level,
             row: 0,
@@ -424,7 +431,7 @@ footer {
         }
       }
 
-      packed.forEach((tile, i) => {
+      result.forEach((tile, i) => {
         const [r, c] = coords[i];
         tile.row = r;
         tile.col = c;
@@ -434,15 +441,13 @@ footer {
 
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
-        const oldTile = before[r][c];
-        const newTile = next[r][c];
+        const a = before[r][c];
+        const b = next[r][c];
 
         if (
-          (oldTile && !newTile) ||
-          (!oldTile && newTile) ||
-          (oldTile && newTile &&
-            (oldTile.id !== newTile.id ||
-             oldTile.level !== newTile.level))
+          (!a && b) ||
+          (a && !b) ||
+          (a && b && (a.id !== b.id || a.level !== b.level))
         ) {
           changed = true;
         }
@@ -451,35 +456,63 @@ footer {
 
     if (!changed) return;
 
-    // Keep old logo images while the existing tiles slide.
-    // After the transition, update merged logos and add a new tile.
+    /*
+      Keep existing DOM elements during the move.
+      Move survivors first; update merged logos only after the slide.
+    */
     const oldLevels = new Map();
-    before.flat().forEach(t => {
-      if (t) oldLevels.set(t.id, t.level);
+    before.flat().forEach(tile => {
+      if (tile) oldLevels.set(tile.id, tile.level);
     });
 
+    busy = true;
     board = next;
 
-    for (const row of board) {
-      for (const tile of row) {
+    const liveIds = new Set(
+      board.flat().filter(Boolean).map(tile => tile.id)
+    );
+
+    // Remove consumed merge partners, but never recreate survivors.
+    for (const el of [...tilesEl.querySelectorAll(".tile")]) {
+      if (!liveIds.has(Number(el.dataset.id))) el.remove();
+    }
+
+    // Move all surviving tiles using their existing elements.
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const tile = board[r][c];
         if (!tile) continue;
-        tile.oldLevel = oldLevels.get(tile.id) || tile.level;
+
+        let el = tilesEl.querySelector(
+          `[data-id="${tile.id}"]`
+        );
+
+        // Existing survivors should already have elements.
+        // If an element is missing, place it at its destination safely.
+        if (!el) {
+          el = createElement(
+            { ...tile, level: oldLevels.get(tile.id) || tile.level },
+            r, c, false
+          );
+        }
+
+        // Keep the old logo visible during the slide.
+        el.style.transform = positionFor(r, c);
       }
     }
 
-    // Render positions first; keep each moving DOM element alive.
-    renderMovingTiles();
-
     score += gained;
+
     if (score > best) {
       best = score;
       localStorage.setItem("getNdpBest", String(best));
     }
 
-    busy = true;
+    scoreEl.textContent = score;
+    bestEl.textContent = best;
 
     window.setTimeout(() => {
-      // Change the logo only after its slide has completed.
+      // Switch to the new logo after the slide completes.
       for (const row of board) {
         for (const tile of row) {
           if (!tile) continue;
@@ -487,18 +520,17 @@ footer {
           const el = tilesEl.querySelector(
             `[data-id="${tile.id}"]`
           );
+
           if (!el) continue;
 
-          if (tile.oldLevel !== tile.level) {
-            const img = el.querySelector("img");
-            img.src = "logos/" + schools[tile.level - 1].file;
-            img.alt = schools[tile.level - 1].name;
+          updateLogo(el, tile.level);
+
+          if (mergedIds.has(tile.id)) {
             el.classList.add("merge");
             el.addEventListener("animationend", () => {
               el.classList.remove("merge");
             }, { once: true });
           }
-          delete tile.oldLevel;
         }
       }
 
@@ -506,94 +538,37 @@ footer {
       render();
       busy = false;
       checkGameState();
-    }, 155);
-  }
-
-  function renderMovingTiles() {
-    // Existing elements are repositioned without being recreated.
-    // This is what prevents the corner-jumping animation.
-    const existing = new Map(
-      [...tilesEl.querySelectorAll(".tile")].map(el => [
-        Number(el.dataset.id), el
-      ])
-    );
-
-    const alive = new Set();
-
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
-        const tile = board[r][c];
-        if (!tile) continue;
-
-        alive.add(tile.id);
-        let el = existing.get(tile.id);
-
-        if (!el) {
-          el = document.createElement("div");
-          el.className = "tile";
-          el.dataset.id = tile.id;
-
-          const img = document.createElement("img");
-          img.alt = schools[tile.oldLevel - 1].name;
-          img.src = "logos/" + schools[tile.oldLevel - 1].file;
-          img.draggable = false;
-          el.appendChild(img);
-
-          // Place the new DOM node at its actual previous location
-          // before moving it to its destination.
-          const oldTile = findOldPosition(tile.id);
-          const oldRow = oldTile ? oldTile.row : r;
-          const oldCol = oldTile ? oldTile.col : c;
-
-          el.style.transform = positionFor(oldRow, oldCol);
-          tilesEl.appendChild(el);
-
-          // Force the browser to register the starting position.
-          void el.offsetWidth;
-        }
-
-        el.style.transform = positionFor(r, c);
-      }
-    }
-
-    for (const [id, el] of existing) {
-      if (!alive.has(id)) el.remove();
-    }
-
-    scoreEl.textContent = score;
-    bestEl.textContent = best;
-  }
-
-  // Find the old position from the last saved board snapshot.
-  // The move routine stores it before replacing the board.
-  let previousPositions = new Map();
-
-  function findOldPosition(id) {
-    return previousPositions.get(id) || null;
+    }, MOVE_TIME);
   }
 
   function checkGameState() {
-    const ndpReached = board.some(row =>
-      row.some(t => t && t.level === schools.length)
+    const won = board.some(row =>
+      row.some(tile => tile && tile.level === schools.length)
     );
 
-    if (ndpReached) {
+    if (won) {
       messageEl.textContent = "YOU GOT NDP!! 💗";
       return;
     }
 
-    messageEl.textContent = "";
-
     const full = board.every(row => row.every(Boolean));
-    if (!full) return;
+
+    if (!full) {
+      messageEl.textContent = "";
+      return;
+    }
 
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
-        const t = board[r][c];
+        const tile = board[r][c];
+
         if (
-          (r + 1 < SIZE && board[r + 1][c].level === t.level) ||
-          (c + 1 < SIZE && board[r][c + 1].level === t.level)
-        ) return;
+          (r + 1 < SIZE && board[r + 1][c].level === tile.level) ||
+          (c + 1 < SIZE && board[r][c + 1].level === tile.level)
+        ) {
+          messageEl.textContent = "";
+          return;
+        }
       }
     }
 
@@ -607,6 +582,7 @@ footer {
     busy = false;
     messageEl.textContent = "";
     tilesEl.innerHTML = "";
+
     addRandomTile();
     addRandomTile();
     render();
@@ -650,12 +626,16 @@ footer {
     }
   }, { passive: true });
 
-  // Keep tile positions aligned if the board changes size.
   if ("ResizeObserver" in window) {
-    resizeObserver = new ResizeObserver(() => render());
-    resizeObserver.observe(boardEl);
+    const observer = new ResizeObserver(() => {
+      // Avoid repositioning tiles in the middle of an animation.
+      if (!busy) render();
+    });
+    observer.observe(boardEl);
   } else {
-    window.addEventListener("resize", render);
+    window.addEventListener("resize", () => {
+      if (!busy) render();
+    });
   }
 
   restart();
