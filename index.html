@@ -5,682 +5,215 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Get NDP — 2048</title>
-
 <style>
-:root {
-  --bg: #fff9fc;
-  --ink: #776e65;
-  --board: #e8c4d4;
-  --empty: #f7e9ef;
-  --pink: #d85c91;
-  --pink-dark: #b74478;
-  --tile: #fff4f8;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
-  font-size: 18px;
-}
-
-.page {
-  width: min(500px, calc(100vw - 28px));
-  margin: 28px auto 40px;
-}
-
-.top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-h1 {
-  font-size: clamp(36px, 9vw, 58px);
-  line-height: 1;
-  margin: 0;
-  font-weight: 800;
-  letter-spacing: -2px;
-  color: var(--pink-dark);
-}
-
-.scores {
-  display: flex;
-  gap: 5px;
-}
-
-.scorebox {
-  background: #d6a2b9;
-  color: white;
-  min-width: 78px;
-  padding: 7px 12px 5px;
-  text-align: center;
-  border-radius: 3px;
-  font-weight: bold;
-}
-
-.scorebox small {
-  display: block;
-  font-size: 12px;
-  line-height: 1.2;
-  text-transform: uppercase;
-  color: #fff5f8;
-}
-
-.scorebox span {
-  font-size: 24px;
-  line-height: 1.35;
-}
-
-.above {
-  margin: 14px 0 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.above p {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.35;
-}
-
-button {
-  border: 0;
-  border-radius: 3px;
-  background: var(--pink);
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  padding: 10px 14px;
-  cursor: pointer;
-}
-
-button:hover { background: var(--pink-dark); }
-
-.board {
-  background: var(--board);
-  padding: 10px;
-  border-radius: 3px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  aspect-ratio: 1;
-  position: relative;
-  isolation: isolate;
-  touch-action: none;
-}
-
-.cell {
-  min-width: 0;
-  min-height: 0;
-  background: var(--empty);
-  border-radius: 2px;
-  grid-row: var(--r);
-  grid-column: var(--c);
-}
-
-.tile-layer {
-  position: absolute;
-  inset: 10px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-template-rows: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  pointer-events: none;
-}
-
-.tile {
-  grid-row: var(--r);
-  grid-column: var(--c);
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  padding: 6px;
-  border-radius: 2px;
-  background: var(--tile);
-  transition: transform 115ms ease-in-out;
-  will-change: transform;
-  overflow: hidden;
-}
-
-.tile img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  mix-blend-mode: multiply;
-}
-
-.tile .fallback {
-  font-size: clamp(9px, 2.5vw, 15px);
-  font-weight: 800;
-  text-align: center;
-  line-height: 1.05;
-  color: #776e65;
-  overflow-wrap: anywhere;
-}
-
-.tile[data-level="1"] { background: #fce8f0; }
-.tile[data-level="2"] { background: #f8d9e6; }
-.tile[data-level="3"] { background: #f5c4da; }
-.tile[data-level="4"] { background: #f0a8c8; }
-.tile[data-level="5"] { background: #eb8fb8; }
-.tile[data-level="6"] { background: #e878a9; }
-.tile[data-level="7"] { background: #e56a9e; }
-.tile[data-level="8"] { background: #df5d92; }
-.tile[data-level="9"] { background: #d94e88; }
-.tile[data-level="10"] { background: #cc4380; }
-.tile[data-level="11"] { background: #bc3976; }
-
-.tile.merged {
-  animation: pop 130ms ease-out;
-}
-
-@keyframes pop {
-  50% { scale: 1.06; }
-}
-
-.notes {
-  margin-top: 20px;
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.notes strong { color: #776e65; }
-
-.panel {
-  margin-top: 20px;
-  border-top: 1px solid #ead5df;
-  padding-top: 14px;
-}
-
-.panel summary {
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.editor {
-  display: grid;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.logo-row {
-  display: grid;
-  grid-template-columns: 1fr 110px;
-  gap: 8px;
-  align-items: center;
-  padding: 7px 0;
-  border-bottom: 1px solid #f0dfe7;
-}
-
-.logo-row .schoolname {
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.logo-row img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  vertical-align: middle;
-  margin-right: 8px;
-}
-
-.logo-row input {
-  font-size: 12px;
-  max-width: 100%;
-}
-
-.small {
-  font-size: 13px;
-  color: #8a8178;
-  line-height: 1.4;
-}
-
-@media (max-width: 420px) {
-  .page { margin-top: 18px; }
-  .scorebox { min-width: 64px; padding: 5px 8px; }
-  .scorebox span { font-size: 20px; }
-  .board { gap: 7px; padding: 7px; }
-  .tile-layer { inset: 7px; gap: 7px; }
-  .tile { padding: 4px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tile { transition: none; }
-  .tile.merged { animation: none; }
-}
+:root{--bg:#fff9fc;--ink:#776e65;--board:#e8c4d4;--empty:#f7e9ef;--pink:#d85c91;--pink-dark:#b74478;--tile:#fff4f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Clear Sans","Helvetica Neue",Arial,sans-serif;font-size:18px}
+.page{width:min(500px,calc(100vw - 28px));margin:28px auto 40px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{font-size:clamp(36px,9vw,58px);line-height:1;margin:0;font-weight:800;letter-spacing:-2px;color:var(--pink-dark)}
+.scores{display:flex;gap:5px}
+.scorebox{background:#d6a2b9;color:white;min-width:78px;padding:7px 12px 5px;text-align:center;border-radius:3px;font-weight:bold}
+.scorebox small{display:block;font-size:12px;line-height:1.2;text-transform:uppercase;color:#fff5f8}
+.scorebox span{font-size:24px;line-height:1.35}
+.above{margin:14px 0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.above p{margin:0;font-size:16px;line-height:1.35}
+button{border:0;border-radius:3px;background:var(--pink);color:white;font-size:16px;font-weight:bold;padding:10px 14px;cursor:pointer}
+button:hover{background:var(--pink-dark)}
+.board{background:var(--board);padding:10px;border-radius:3px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;aspect-ratio:1;position:relative;isolation:isolate;touch-action:pan-y}
+.board #background{position:absolute;inset:10px;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:10px;pointer-events:none;z-index:0}
+.cell{min-width:0;min-height:0;background:var(--empty);border-radius:2px}
+.tile-layer{position:absolute;inset:10px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:10px;pointer-events:none;z-index:1}
+.tile{grid-row:var(--r);grid-column:var(--c);min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;padding:6px;border-radius:2px;background:var(--tile);transition:transform 115ms ease-in-out,background-color 115ms ease-in-out;will-change:transform;overflow:hidden}
+.tile img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply}
+.tile .fallback{font-size:clamp(9px,2.5vw,15px);font-weight:800;text-align:center;line-height:1.05;color:#776e65;overflow-wrap:anywhere}
+.tile[data-level="1"]{background:#fce8f0}
+.tile[data-level="2"]{background:#f8d9e6}
+.tile[data-level="3"]{background:#f5c4da}
+.tile[data-level="4"]{background:#f0a8c8}
+.tile[data-level="5"]{background:#eb8fb8}
+.tile[data-level="6"]{background:#e878a9}
+.tile[data-level="7"]{background:#e56a9e}
+.tile[data-level="8"]{background:#df5d92}
+.tile[data-level="9"]{background:#d94e88}
+.tile[data-level="10"]{background:#cc4380}
+.tile[data-level="11"]{background:#bc3976}
+.tile[data-level="12"]{background:#ad5c96}
+.tile[data-level="13"]{background:#a477b2}
+.tile[data-level="14"]{background:#8c7dbb}
+.tile[data-level="15"]{background:#776bb1}
+.tile.merged{animation:pop 130ms ease-out}
+@keyframes pop{50%{scale:1.07}}
+.notes{margin-top:20px;font-size:16px;line-height:1.5}
+.notes strong{color:#776e65}
+.panel{margin-top:20px;border-top:1px solid #ead5df;padding-top:14px}
+.panel summary{cursor:pointer;font-weight:bold;font-size:16px}
+.editor{display:grid;gap:8px;margin-top:12px}
+.logo-row{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #f0dfe7}
+.logo-row .schoolname{font-size:14px;font-weight:bold}
+.logo-row img{width:40px;height:40px;object-fit:contain;vertical-align:middle;margin-right:8px}
+.logo-row input{font-size:12px;max-width:100%}
+.small{font-size:13px;color:#8a8178;line-height:1.4}
+@media(max-width:420px){.page{margin-top:18px}.scorebox{min-width:64px;padding:5px 8px}.scorebox span{font-size:20px}.board{gap:7px;padding:7px}.board #background{inset:7px;gap:7px}.tile-layer{inset:7px;gap:7px}.tile{padding:4px}}
+@media(prefers-reduced-motion:reduce){.tile{transition:none}.tile.merged{animation:none}}
 </style>
 </head>
-
 <body>
 <main class="page">
-
 <header class="top">
-  <h1>Get NDP</h1>
-  <div class="scores">
-    <div class="scorebox">
-      <small>Score</small>
-      <span id="score">0</span>
-    </div>
-    <div class="scorebox">
-      <small>Best</small>
-      <span id="best">0</span>
-    </div>
-  </div>
+<h1>Get NDP</h1>
+<div class="scores">
+<div class="scorebox"><small>Score</small><span id="score">0</span></div>
+<div class="scorebox"><small>Best</small><span id="best">0</span></div>
+</div>
 </header>
 
 <section class="above">
-  <p><strong>Merge your way to NDP.</strong><br>
-  Match two of the same school to move up the ladder.</p>
-  <button id="newgame">New Game</button>
+<p><strong>Merge your way to NDP.</strong><br><span>Made by Cate Graham.</span></p>
+<button id="newgame">New Game</button>
 </section>
 
-<div id="board" class="board" role="grid"
-     aria-label="School 2048 game board">
-  <div id="background" style="display:contents"></div>
-  <div id="tileLayer" class="tile-layer"></div>
+<div id="board" class="board" role="grid" aria-label="School 2048 game board">
+<div id="background"></div>
+<div id="tileLayer" class="tile-layer"></div>
 </div>
 
-<p class="notes">
-  <strong>Created by Cate Graham.</strong><br>
-  <strong>How to play:</strong> Use the arrow keys or WASD.
-  On a phone, swipe across the board.
-  Matching schools merge into the next school.
-  Reach NDP to win!
-</p>
+<p class="notes"><strong>How to play:</strong> Use the arrow keys or WASD. On a phone, swipe across the board. Matching schools merge into the next school. Reach NDP to win!</p>
 
 <details class="panel">
-  <summary>Upload school logos</summary>
-  <p class="small">
-    Upload replacement logos if needed. Changes are saved in this
-    browser on this device.
-  </p>
-  <div id="editor" class="editor"></div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-    <button id="save">Save logos</button>
-    <button id="resetlogos" type="button">Clear logos</button>
-  </div>
-  <p id="status" class="small" aria-live="polite"></p>
+<summary>Upload school logos</summary>
+<p class="small">Upload replacement logos if needed. Changes are saved in this browser on this device.</p>
+<div id="editor" class="editor"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+<button id="save">Save logos</button>
+<button id="resetlogos" type="button">Clear logos</button>
+</div>
+<p id="status" class="small" aria-live="polite"></p>
 </details>
-
 </main>
 
 <script>
-// Exact school merge progression.
-// Keep the logos folder and filenames exactly as listed here.
-const schools = [
-  {
-    name: "Saint Philip Neri",
-    short: "SPN",
-    value: 2,
-    logo: "logos/images_spn.png"
-  },
-  {
-    name: "St. Ursula's",
-    short: "ST. URSULA'S",
-    value: 4,
-    logo: "logos/images_sus.jpg"
-  },
-  {
-    name: "ICS",
-    short: "ICS",
-    value: 8,
-    logo: "logos/ICS-Logo.jpg"
-  },
-  {
-    name: "John Carroll",
-    short: "JOHN CARROLL",
-    value: 16,
-    logo: "logos/The_John_Carroll_School_Logo.jpeg"
-  },
-  {
-    name: "RCPS",
-    short: "RCPS",
-    value: 32,
-    logo: "logos/Rpcs_logo2.png"
-  },
-  {
-    name: "Mount de Sales",
-    short: "MOUNT DE SALES",
-    value: 64,
-    logo: "logos/Mount_de_Sales_Academy_Logo.png"
-  },
-  {
-    name: "Catholic High",
-    short: "CATHOLIC HIGH",
-    value: 128,
-    logo: "logos/images.jpg"
-  },
-  {
-    name: "Bryn Mawr",
-    short: "BRYN MAWR",
-    value: 256,
-    logo: "logos/bryn-mawr-school.jpg"
-  },
-  {
-    name: "Mercy",
-    short: "MERCY",
-    value: 512,
-    logo: "logos/MHS_Seal_ONLY.jpg"
-  },
-  {
-    name: "Maryvale",
-    short: "MARYVALE",
-    value: 1024,
-    logo: "logos/images_maryvale.jpg"
-  },
-  {
-    name: "Notre Dame Preparatory",
-    short: "NDP",
-    value: 2048,
-    logo: "logos/images_ndp.jpg"
-  }
+const schools=[
+{name:"Saint Philip Neri",short:"SPN",value:2,logo:"logos/images_spn.png"},
+{name:"St. Ursula's",short:"ST. URSULA'S",value:4,logo:"logos/images_sus.jpg"},
+{name:"ICS",short:"ICS",value:8,logo:"logos/ICS-Logo.jpg"},
+{name:"John Carroll",short:"JOHN CARROLL",value:16,logo:"logos/The_John_Carroll_School_Logo.jpeg"},
+{name:"RCPS",short:"RCPS",value:32,logo:"logos/Rpcs_logo2.png"},
+{name:"Mount de Sales",short:"MOUNT DE SALES",value:64,logo:"logos/Mount_de_Sales_Academy_Logo.png"},
+{name:"Catholic High",short:"CATHOLIC HIGH",value:128,logo:"logos/images.jpg"},
+{name:"Bryn Mawr",short:"BRYN MAWR",value:256,logo:"logos/bryn-mawr-school.jpg"},
+{name:"Mercy",short:"MERCY",value:512,logo:"logos/MHS_Seal_ONLY.jpg"},
+{name:"Maryvale",short:"MARYVALE",value:1024,logo:"logos/images_maryvale.jpg"},
+{name:"Notre Dame Preparatory",short:"NDP",value:2048,logo:"logos/images_ndp.jpg"}
 ];
 
-const key = "getNDPClassicLogosV5";
-let logos = {};
+const key="getNDPClassicLogosV5";
+let logos={};
+try{logos=JSON.parse(localStorage.getItem(key)||"{}")}catch(e){}
+let nextId=1,board=Array(16).fill(null),score=0,best=Number(localStorage.getItem("getNDPBest")||0),won=false;
+const el=id=>document.getElementById(id);
+const schoolFor=v=>schools.find(s=>s.value===v);
+const level=v=>Math.max(1,Math.round(Math.log2(v/2))+1);
 
-try {
-  logos = JSON.parse(localStorage.getItem(key) || "{}");
-} catch (e) {}
+el("background").innerHTML=Array.from({length:16},()=>'<div class="cell"></div>').join("");
 
-let nextId = 1;
-let board = Array(16).fill(null);
-let score = 0;
-let best = Number(localStorage.getItem("getNDPBest") || 0);
-let won = false;
-
-const el = id => document.getElementById(id);
-const schoolFor = value => schools.find(s => s.value === value);
-const level = value => Math.max(1, Math.round(Math.log2(value / 2)) + 1);
-
-function tileHTML(tile, index) {
-  const school = schoolFor(tile.value);
-  if (!school) return "";
-
-  const src = logos[school.name] || school.logo;
-
-  return `
-    <div class="tile"
-         data-id="${tile.id}"
-         data-value="${tile.value}"
-         data-level="${level(tile.value)}"
-         style="--r:${Math.floor(index / 4) + 1};--c:${index % 4 + 1}"
-         title="${school.name}">
-      ${src ? `
-        <img src="${src}" alt="${school.name} logo"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      ` : ""}
-      <div class="fallback" style="${src ? "display:none" : ""}">
-        ${school.short}
-      </div>
-    </div>
-  `;
+function tileHTML(t,i){
+const s=schoolFor(t.value);
+if(!s)return "";
+const src=logos[s.name]||s.logo;
+return `<div class="tile" data-id="${t.id}" data-value="${t.value}" data-level="${level(t.value)}" style="--r:${Math.floor(i/4)+1};--c:${i%4+1}" title="${s.name}">${src?`<img src="${src}" alt="${s.name} logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:''}<div class="fallback" style="${src?'display:none':''}">${s.short}</div></div>`;
 }
 
-function render(animate = true) {
-  const layer = el("tileLayer");
-
-  // Record each existing tile's screen position before moving it.
-  const oldRects = new Map(
-    [...layer.querySelectorAll(".tile")].map(tile => [
-      tile.dataset.id,
-      tile.getBoundingClientRect()
-    ])
-  );
-
-  layer.innerHTML = board
-    .map((tile, index) => tile ? tileHTML(tile, index) : "")
-    .join("");
-
-  // Animate each tile from its old position to its new position.
-  for (const tile of layer.querySelectorAll(".tile")) {
-    const old = oldRects.get(tile.dataset.id);
-    if (!old || !animate) continue;
-
-    const rect = tile.getBoundingClientRect();
-    const dx = old.left - rect.left;
-    const dy = old.top - rect.top;
-
-    if (Math.abs(dx) + Math.abs(dy) > 1) {
-      tile.style.transition = "none";
-      tile.style.transform = `translate(${dx}px, ${dy}px)`;
-      tile.getBoundingClientRect();
-
-      requestAnimationFrame(() => {
-        tile.style.transition = "";
-        tile.style.transform = "translate(0, 0)";
-      });
-    }
-  }
-
-  el("score").textContent = score;
-  el("best").textContent = best;
+function render(animate=true){
+const layer=el("tileLayer");
+const oldRects=new Map([...layer.querySelectorAll(".tile")].map(t=>[t.dataset.id,t.getBoundingClientRect()]));
+layer.innerHTML=board.map((t,i)=>t?tileHTML(t,i):"").join("");
+for(const tile of layer.querySelectorAll(".tile")){
+const old=oldRects.get(tile.dataset.id);
+if(!old||!animate)continue;
+const rect=tile.getBoundingClientRect(),dx=old.left-rect.left,dy=old.top-rect.top;
+if(Math.abs(dx)+Math.abs(dy)>1){
+tile.style.transition="none";
+tile.style.transform=`translate(${dx}px,${dy}px)`;
+tile.getBoundingClientRect();
+requestAnimationFrame(()=>{tile.style.transition="";tile.style.transform="translate(0,0)";});
+}}
+el("score").textContent=score;
+el("best").textContent=best;
 }
 
-function spawn() {
-  const empty = board
-    .map((tile, index) => tile === null ? index : -1)
-    .filter(index => index >= 0);
-
-  if (!empty.length) return;
-
-  const index = empty[Math.floor(Math.random() * empty.length)];
-
-  board[index] = {
-    id: nextId++,
-    value: Math.random() < 0.9 ? 2 : 4
-  };
+function spawn(){
+const empty=board.map((t,i)=>t===null?i:-1).filter(i=>i>=0);
+if(!empty.length)return;
+const i=empty[Math.floor(Math.random()*empty.length)];
+board[i]={id:nextId++,value:Math.random()<.9?2:4};
 }
 
-function start() {
-  board = Array(16).fill(null);
-  score = 0;
-  won = false;
-  spawn();
-  spawn();
-  render(false);
+function start(){
+board=Array(16).fill(null);score=0;won=false;spawn();spawn();render(false);
 }
 
-function slideLine(line) {
-  const values = line.filter(Boolean);
-  const output = [];
-
-  for (let i = 0; i < values.length; i++) {
-    if (
-      values[i].value === values[i + 1]?.value &&
-      schoolFor(values[i].value * 2)
-    ) {
-      const mergedValue = values[i].value * 2;
-
-      output.push({
-        id: values[i].id,
-        value: mergedValue
-      });
-
-      score += mergedValue;
-      i++;
-
-      if (mergedValue === 2048 && !won) {
-        won = true;
-        setTimeout(() => alert("YOU GOT NDP! 💗"), 160);
-      }
-    } else {
-      output.push(values[i]);
-    }
-  }
-
-  while (output.length < 4) output.push(null);
-  return output;
+function slideLine(line){
+const vals=line.filter(Boolean),out=[];
+for(let i=0;i<vals.length;i++){
+if(vals[i].value===vals[i+1]?.value&&schoolFor(vals[i].value*2)){
+const mergedValue=vals[i].value*2;
+out.push({id:vals[i].id,value:mergedValue});
+score+=mergedValue;i++;
+if(mergedValue===2048&&!won){won=true;setTimeout(()=>alert("YOU GOT NDP! 💗"),160);}
+}else out.push(vals[i]);
+}
+while(out.length<4)out.push(null);
+return out;
 }
 
-function move(direction) {
-  const old = board.map(tile => tile ? { ...tile } : null);
-  const next = Array(16).fill(null);
-
-  for (let n = 0; n < 4; n++) {
-    const indices = [];
-
-    for (let k = 0; k < 4; k++) {
-      if (direction === "left") indices.push(n * 4 + k);
-      if (direction === "right") indices.push(n * 4 + 3 - k);
-      if (direction === "up") indices.push(k * 4 + n);
-      if (direction === "down") indices.push((3 - k) * 4 + n);
-    }
-
-    const values = slideLine(indices.map(index => old[index]));
-
-    indices.forEach((index, j) => {
-      next[index] = values[j];
-    });
-  }
-
-  const unchanged = next.every((tile, index) =>
-    (tile?.value || 0) === (old[index]?.value || 0)
-  );
-
-  if (unchanged) return;
-
-  board = next;
-  spawn();
-
-  best = Math.max(best, score);
-
-  try {
-    localStorage.setItem("getNDPBest", best);
-  } catch (e) {}
-
-  render(true);
+function move(dir){
+const old=board.map(t=>t?{...t}:null),next=Array(16).fill(null);
+for(let n=0;n<4;n++){
+const inds=[];
+for(let k=0;k<4;k++){
+if(dir==="left")inds.push(n*4+k);
+if(dir==="right")inds.push(n*4+3-k);
+if(dir==="up")inds.push(k*4+n);
+if(dir==="down")inds.push((3-k)*4+n);
+}
+const vals=slideLine(inds.map(i=>old[i]));
+inds.forEach((idx,j)=>next[idx]=vals[j]);
+}
+if(next.every((t,i)=>(t?.value||0)===(old[i]?.value||0)))return;
+board=next;spawn();best=Math.max(best,score);
+try{localStorage.setItem("getNDPBest",best)}catch(e){}
+render(true);
 }
 
-document.addEventListener("keydown", event => {
-  const map = {
-    ArrowLeft: "left",
-    a: "left",
-    A: "left",
-    ArrowRight: "right",
-    d: "right",
-    D: "right",
-    ArrowUp: "up",
-    w: "up",
-    W: "up",
-    ArrowDown: "down",
-    s: "down",
-    S: "down"
-  };
-
-  if (
-    map[event.key] &&
-    !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)
-  ) {
-    event.preventDefault();
-    move(map[event.key]);
-  }
+document.addEventListener("keydown",e=>{
+const map={ArrowLeft:"left",a:"left",A:"left",ArrowRight:"right",d:"right",D:"right",ArrowUp:"up",w:"up",W:"up",ArrowDown:"down",s:"down",S:"down"};
+if(map[e.key]&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();move(map[e.key]);}
 });
 
-let sx = 0;
-let sy = 0;
+let sx=0,sy=0;
+el("board").addEventListener("touchstart",e=>{sx=e.changedTouches[0].screenX;sy=e.changedTouches[0].screenY;},{passive:true});
+el("board").addEventListener("touchend",e=>{
+const dx=e.changedTouches[0].screenX-sx,dy=e.changedTouches[0].screenY-sy;
+if(Math.max(Math.abs(dx),Math.abs(dy))<25)return;
+move(Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up"));
+},{passive:true});
 
-el("board").addEventListener("touchstart", event => {
-  sx = event.changedTouches[0].screenX;
-  sy = event.changedTouches[0].screenY;
-}, { passive: true });
+el("newgame").onclick=start;
 
-el("board").addEventListener("touchend", event => {
-  const dx = event.changedTouches[0].screenX - sx;
-  const dy = event.changedTouches[0].screenY - sy;
-
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
-
-  move(
-    Math.abs(dx) > Math.abs(dy)
-      ? (dx > 0 ? "right" : "left")
-      : (dy > 0 ? "down" : "up")
-  );
-}, { passive: true });
-
-el("newgame").onclick = start;
-
-function renderEditor() {
-  el("editor").innerHTML = schools.map((school, index) => `
-    <div class="logo-row">
-      <div>
-        <span class="schoolname">${school.name}</span>
-        <div class="small">
-          ${school.value}${index === schools.length - 1 ? " · final tile" : ""}
-        </div>
-      </div>
-      <div>
-        ${logos[school.name]
-          ? `<img src="${logos[school.name]}" alt="${school.name} logo">`
-          : ""}
-        <input type="file"
-          accept="image/*"
-          aria-label="Upload ${school.name} logo"
-          data-school="${school.name}">
-      </div>
-    </div>
-  `).join("");
-
-  el("editor")
-    .querySelectorAll('input[type="file"]')
-    .forEach(input => {
-      input.addEventListener("change", event => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        if (file.size > 2 * 1024 * 1024) {
-          el("status").textContent = "Choose a logo under 2 MB.";
-          return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = () => {
-          logos[event.target.dataset.school] = reader.result;
-          renderEditor();
-          render();
-          el("status").textContent =
-            "Logo loaded. Click Save logos to keep it in this browser.";
-        };
-
-        reader.readAsDataURL(file);
-      });
-    });
+function renderEditor(){
+el("editor").innerHTML=schools.map((s,i)=>`<div class="logo-row"><div><span class="schoolname">${s.name}</span><div class="small">${s.value.toLocaleString()}${i===schools.length-1?" · final tile":""}</div></div><div>${logos[s.name]?`<img src="${logos[s.name]}" alt="${s.name} logo">`:""}<input type="file" accept="image/*" aria-label="Upload ${s.name} logo" data-school="${s.name}"></div></div>`).join("");
+el("editor").querySelectorAll('input[type="file"]').forEach(inp=>inp.addEventListener("change",e=>{
+const f=e.target.files[0];if(!f)return;
+if(f.size>2*1024*1024){el("status").textContent="Choose a logo under 2 MB.";return;}
+const reader=new FileReader();
+reader.onload=()=>{logos[e.target.dataset.school]=reader.result;renderEditor();render();el("status").textContent="Logo loaded. Click Save logos to keep it in this browser.";};
+reader.readAsDataURL(f);
+}));
 }
 
-el("save").onclick = () => {
-  try {
-    localStorage.setItem(key, JSON.stringify(logos));
-    el("status").textContent = "Saved in this browser.";
-  } catch (e) {
-    el("status").textContent =
-      "Storage is full. Try smaller logo images.";
-  }
-};
-
-el("resetlogos").onclick = () => {
-  if (confirm("Clear all uploaded logos from this browser?")) {
-    logos = {};
-    localStorage.removeItem(key);
-    renderEditor();
-    render();
-    el("status").textContent = "Logos cleared.";
-  }
-};
-
+el("save").onclick=()=>{try{localStorage.setItem(key,JSON.stringify(logos));el("status").textContent="Saved in this browser.";}catch(e){el("status").textContent="Storage is full. Try smaller logo images.";}};
+el("resetlogos").onclick=()=>{if(confirm("Clear all uploaded logos from this browser?")){logos={};localStorage.removeItem(key);renderEditor();render();el("status").textContent="Logos cleared."; }};
 renderEditor();
 start();
 </script>
