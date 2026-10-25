@@ -104,6 +104,48 @@ button:hover { background:var(--pink-dark); }
   0% { opacity:.7; }
   100% { opacity:1; }
 }
+
+/* Transparent game-over overlay directly on top of the tiles */
+.game-over {
+  position:absolute;
+  inset:10px;
+  z-index:5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,249,252,.55);
+  border-radius:3px;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity 180ms ease, visibility 180ms ease;
+}
+.game-over.visible {
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+.retry-button {
+  width:min(70%,300px);
+  padding:20px 12px;
+  border:3px solid rgba(255,255,255,.95);
+  border-radius:24px;
+  background:rgba(110,151,136,.48);
+  color:#fff;
+  font-size:clamp(25px,7vw,42px);
+  font-weight:800;
+  letter-spacing:2px;
+  text-shadow:0 1px 3px rgba(55,83,73,.25);
+  box-shadow:0 3px 14px rgba(70,111,96,.12);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+  cursor:pointer;
+  pointer-events:auto;
+}
+.retry-button:hover {
+  background:rgba(110,151,136,.68);
+}
+
 .notes { margin-top:20px; font-size:16px; line-height:1.5; }
 .notes strong { color:#776e65; }
 .credits {
@@ -122,9 +164,12 @@ button:hover { background:var(--pink-dark); }
   .tile-layer { inset:7px; gap:7px; }
   .board #background { inset:7px; gap:7px; }
   .tile { padding:4px; }
+  .game-over { inset:7px; }
+  .retry-button { padding:16px 8px; border-radius:20px; }
 }
 @media(prefers-reduced-motion:reduce) {
   .tile.merged,.tile.new-tile { animation:none; }
+  .game-over { transition:none; }
 }
 </style>
 </head>
@@ -146,6 +191,10 @@ button:hover { background:var(--pink-dark); }
 <div id="board" class="board" role="grid" aria-label="School 2048 game board">
   <div id="background" style="display:contents"></div>
   <div id="tileLayer" class="tile-layer"></div>
+
+  <div id="gameOver" class="game-over" aria-hidden="true">
+    <button id="retry" class="retry-button" type="button">RETRY</button>
+  </div>
 </div>
 
 <p class="notes">
@@ -189,6 +238,7 @@ let board = Array(16).fill(null);
 let score = 0;
 let best = Number(localStorage.getItem("getNDPBest") || 0);
 let won = false;
+let gameOver = false;
 let unlocked = new Set([2,4]);
 
 const el = id => document.getElementById(id);
@@ -245,8 +295,10 @@ function render(animate=true) {
     t.glow = false;
     t.isNew = false;
   }
+
   el("score").textContent = score;
   el("best").textContent = best;
+  updateGameOver();
 }
 
 function spawn() {
@@ -256,11 +308,34 @@ function spawn() {
   board[i] = {id:nextId++,value:Math.random()<0.9 ? 2 : 4,isNew:true};
 }
 
+function hasMoves() {
+  if (board.some(t => t===null)) return true;
+
+  for (let r=0;r<4;r++) {
+    for (let c=0;c<4;c++) {
+      const i=r*4+c;
+      const value=board[i]?.value;
+      if (c<3 && value===board[i+1]?.value) return true;
+      if (r<3 && value===board[i+4]?.value) return true;
+    }
+  }
+  return false;
+}
+
+function updateGameOver() {
+  gameOver = !hasMoves();
+  el("gameOver").classList.toggle("visible",gameOver);
+  el("gameOver").setAttribute("aria-hidden",String(!gameOver));
+}
+
 function start() {
   board = Array(16).fill(null);
   score = 0;
   won = false;
+  gameOver = false;
   unlocked = new Set([2,4]);
+  el("gameOver").classList.remove("visible");
+  el("gameOver").setAttribute("aria-hidden","true");
   spawn();
   spawn();
   render(false);
@@ -276,7 +351,6 @@ function slideLine(line) {
       const isNewUnlock = !unlocked.has(mergedValue);
       unlocked.add(mergedValue);
 
-      // Yellow glow only when this school is unlocked for the first time.
       out.push({
         id:vals[i].id,
         value:mergedValue,
@@ -300,6 +374,8 @@ function slideLine(line) {
 }
 
 function move(dir) {
+  if (gameOver) return;
+
   const old = board.map(t => t ? {...t} : null);
   const next = Array(16).fill(null);
 
@@ -353,6 +429,7 @@ el("board").addEventListener("touchend",e => {
 },{passive:true});
 
 el("newgame").onclick=start;
+el("retry").onclick=start;
 start();
 </script>
 </body>
