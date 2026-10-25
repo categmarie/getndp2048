@@ -3,8 +3,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Get NDP — 2048</title>
+
 <style>
 :root {
   --bg: #fff9fc;
@@ -14,26 +15,30 @@
   --pink: #a8ddc8;
   --pink-dark: #72bca1;
   --tile: #fff4f8;
-  --mint: #dff4eb;
 }
+
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Clear Sans", Arial, sans-serif;
   font-size: 18px;
 }
+
 .page {
   width: min(500px, calc(100vw - 28px));
   margin: 28px auto 40px;
 }
+
 .top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
 }
+
 h1 {
   font-size: clamp(36px, 9vw, 58px);
   line-height: 1;
@@ -42,24 +47,30 @@ h1 {
   letter-spacing: -2px;
   color: #d98eb0;
 }
+
 .scores { display: flex; gap: 5px; }
+
 .scorebox {
   background: #9dcfbb;
-  color: #fff;
+  color: white;
   min-width: 78px;
   padding: 7px 12px 5px;
   text-align: center;
   border-radius: 3px;
   font-weight: bold;
 }
+
 .scorebox small {
   display: block;
   font-size: 12px;
-  line-height: 1.2;
   text-transform: uppercase;
-  color: #fff5f8;
 }
-.scorebox span { font-size: 24px; line-height: 1.35; }
+
+.scorebox span {
+  font-size: 24px;
+  line-height: 1.35;
+}
+
 .above {
   margin: 14px 0 18px;
   display: flex;
@@ -68,7 +79,9 @@ h1 {
   gap: 12px;
   flex-wrap: wrap;
 }
-.above p { margin: 0; font-size: 16px; line-height: 1.35; }
+
+.above p { margin: 0; font-size: 16px; }
+
 button {
   border: 0;
   border-radius: 3px;
@@ -79,7 +92,9 @@ button {
   padding: 10px 14px;
   cursor: pointer;
 }
+
 button:hover { background: var(--pink-dark); }
+
 .board {
   background: var(--board);
   padding: 10px;
@@ -90,25 +105,11 @@ button:hover { background: var(--pink-dark); }
   aspect-ratio: 1;
   position: relative;
   isolation: isolate;
-  touch-action: pan-y;
+  touch-action: none;
+  overflow: hidden;
 }
-.cell {
-  min-width: 0;
-  min-height: 0;
-  background: var(--empty);
-  border-radius: 2px;
-}
-.board #background {
-  position: absolute;
-  inset: 10px;
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-template-rows: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  pointer-events: none;
-  z-index: 0;
-}
-.tile-layer {
+
+.background {
   position: absolute;
   inset: 10px;
   display: grid;
@@ -116,32 +117,47 @@ button:hover { background: var(--pink-dark); }
   grid-template-rows: repeat(4, minmax(0, 1fr));
   gap: 10px;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
-.tile {
-  grid-row: var(--r);
-  grid-column: var(--c);
+
+.cell {
   min-width: 0;
   min-height: 0;
+  background: var(--empty);
+  border-radius: 2px;
+}
+
+/* Tiles move using transforms instead of being recreated each turn. */
+.tile-layer {
+  position: absolute;
+  inset: 10px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tile {
+  position: absolute;
+  width: calc((100% - 30px) / 4);
+  height: calc((100% - 30px) / 4);
+  left: calc(var(--c) * (100% + 10px) / 4 - (100% + 10px) / 4);
+  top: calc(var(--r) * (100% + 10px) / 4 - (100% + 10px) / 4);
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
   padding: 6px;
   border-radius: 2px;
   background: var(--tile);
-  transition: background-color 115ms ease-in-out;
-  will-change: transform;
   overflow: hidden;
+  will-change: transform;
 }
+
 .tile img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  mix-blend-mode: normal;
-  filter: none;
 }
-.tile .fallback {
+
+.fallback {
   font-size: clamp(9px, 2.5vw, 15px);
   font-weight: 800;
   text-align: center;
@@ -149,7 +165,7 @@ button:hover { background: var(--pink-dark); }
   color: #776e65;
   overflow-wrap: anywhere;
 }
-.tile .value { display: none; }
+
 .tile[data-level="1"] { background: #fce8f0; }
 .tile[data-level="2"] { background: #dff4eb; }
 .tile[data-level="3"] { background: #f6dce8; }
@@ -161,33 +177,23 @@ button:hover { background: var(--pink-dark); }
 .tile[data-level="9"] { background: #e6a2c2; }
 .tile[data-level="10"] { background: #96d3ba; }
 .tile[data-level="11"] { background: #df91b6; }
-.tile[data-level="12"] { background: #8bc9b0; }
-.tile[data-level="13"] { background: #d783ab; }
-.tile[data-level="14"] { background: #7dbfa5; }
-.tile[data-level="15"] { background: #d078a3; }
 
 .tile.merged { animation: gold-shine 650ms ease-out; }
-.tile.new-tile { animation: gold-shine 850ms ease-out; }
+
 @keyframes gold-shine {
-  0% {
-    box-shadow: inset 0 0 0 0 rgba(255,215,0,0), 0 0 0 rgba(255,190,30,0);
-    filter: brightness(1);
-  }
-  18% {
-    box-shadow: inset 0 0 0 4px #ffe66d, 0 0 20px 7px rgba(255,190,30,.95);
-    filter: brightness(1.2);
-  }
-  55% {
-    box-shadow: inset 0 0 0 2px #ffd84d, 0 0 12px 3px rgba(255,190,30,.6);
-    filter: brightness(1.08);
-  }
-  100% {
-    box-shadow: inset 0 0 0 0 rgba(255,215,0,0), 0 0 0 rgba(255,190,30,0);
-    filter: brightness(1);
-  }
+  0% { box-shadow: inset 0 0 0 0 transparent; }
+  20% { box-shadow: inset 0 0 0 4px #ffe66d, 0 0 20px 7px rgba(255,190,30,.8); }
+  100% { box-shadow: inset 0 0 0 0 transparent; }
 }
-.notes { margin-top: 20px; font-size: 16px; line-height: 1.5; }
+
+.notes {
+  margin-top: 20px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
 .notes strong { color: #776e65; }
+
 .credits {
   margin: 24px 0 0;
   padding-top: 12px;
@@ -197,71 +203,70 @@ button:hover { background: var(--pink-dark); }
   line-height: 1.8;
   color: #8b9b93;
 }
-.credits a { color: #b56f92; text-decoration: underline; }
-.credits a:hover { color: #72bca1; }
+
+.credits a { color: #b56f92; }
 .creator {
   font-size: 15px;
   font-weight: 700;
   color: #7da997;
   margin-top: 4px;
 }
+
 @media (max-width: 420px) {
   .page { margin-top: 18px; }
   .scorebox { min-width: 64px; padding: 5px 8px; }
   .scorebox span { font-size: 20px; }
   .board { gap: 7px; padding: 7px; }
-  .tile-layer { inset: 7px; gap: 7px; }
-  .tile { padding: 4px; }
-  .tile .value { font-size: 8px; right: 2px; bottom: 2px; }
+  .background { inset: 7px; gap: 7px; }
+  .tile-layer { inset: 7px; }
+  .tile {
+    width: calc((100% - 21px) / 4);
+    height: calc((100% - 21px) / 4);
+    padding: 4px;
+  }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .tile.merged { animation: none; }
 }
 </style>
 </head>
+
 <body>
 <main class="page">
-
-<header class="top">
-  <h1>Get NDP</h1>
-  <div class="scores">
-    <div class="scorebox">
-      <small>Score</small>
-      <span id="score">0</span>
+  <header class="top">
+    <h1>Get NDP</h1>
+    <div class="scores">
+      <div class="scorebox"><small>Score</small><span id="score">0</span></div>
+      <div class="scorebox"><small>Best</small><span id="best">0</span></div>
     </div>
-    <div class="scorebox">
-      <small>Best</small>
-      <span id="best">0</span>
+  </header>
+
+  <section class="above">
+    <p><strong>Merge your way to NDP.</strong></p>
+    <button id="newgame">New Game</button>
+  </section>
+
+  <div id="board" class="board" role="grid" aria-label="School 2048 game board">
+    <div id="background" class="background"></div>
+    <div id="tileLayer" class="tile-layer"></div>
+  </div>
+
+  <p class="notes">
+    <strong>How to play:</strong> Use the arrow keys or WASD.
+    On a phone, swipe across the board. Matching schools merge
+    into the next school. Reach NDP to win!
+  </p>
+
+  <footer class="credits">
+    <div>
+      Inspired by
+      <a href="https://mitchellgu.github.io/GetMIT/" target="_blank" rel="noopener noreferrer">GetMIT!</a>
+      and
+      <a href="https://getloyola.github.io/GetLoyola/" target="_blank" rel="noopener noreferrer">Get Loyola</a>
     </div>
-  </div>
-</header>
-
-<section class="above">
-  <p><strong>Merge your way to NDP.</strong></p>
-  <button id="newgame">New Game</button>
-</section>
-
-<div id="board" class="board" role="grid" aria-label="School 2048 game board">
-  <div id="background" style="display:contents"></div>
-  <div id="tileLayer" class="tile-layer"></div>
-</div>
-
-<p class="notes">
-  <strong>How to play:</strong> Use the arrow keys or WASD.
-  On a phone, swipe across the board. Matching schools merge into
-  the next school. Reach NDP to win!
-</p>
-
-<footer class="credits">
-  <div>
-    Inspired by
-    <a href="https://mitchellgu.github.io/GetMIT/" target="_blank" rel="noopener noreferrer">GetMIT!</a>
-    and
-    <a href="https://getloyola.github.io/GetLoyola/" target="_blank" rel="noopener noreferrer">Get Loyola</a>
-  </div>
-  <div class="creator">Created by Cate Graham</div>
-</footer>
-
+    <div class="creator">Created by Cate Graham</div>
+  </footer>
 </main>
 
 <script>
@@ -279,169 +284,229 @@ const schools = [
   {name:"Notre Dame Preparatory",short:"NDP",value:2048,logo:"logos/images_ndp.jpg"}
 ];
 
-const key = "getNDPClassicLogosV4";
-let logos = {};
-try {
-  logos = JSON.parse(localStorage.getItem(key) || "{}");
-} catch (e) {}
+const $ = id => document.getElementById(id);
+const schoolFor = value => schools.find(s => s.value === value);
+const level = value => Math.max(1, Math.round(Math.log2(value / 2)) + 1);
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-let nextId = 1;
 let board = Array(16).fill(null);
+let nextId = 1;
 let score = 0;
 let best = Number(localStorage.getItem("getNDPBest") || 0);
 let won = false;
 let unlocked = new Set([2, 4]);
+let busy = false;
+let touchStartX = 0;
+let touchStartY = 0;
 
-const el = id => document.getElementById(id);
-const schoolFor = v => schools.find(s => s.value === v);
-const level = v => Math.max(1, Math.round(Math.log2(v / 2)) + 1);
+$("best").textContent = best;
+$("background").innerHTML = Array.from({length:16}, () => '<div class="cell"></div>').join("");
 
-el("background").innerHTML = Array.from(
-  {length:16},
-  () => '<div class="cell"></div>'
-).join("");
+function tileHTML(tile, index) {
+  const school = schoolFor(tile.value);
+  if (!school) return "";
 
-function tileHTML(t, i) {
-  const s = schoolFor(t.value);
-  if (!s) return "";
-  const src = logos[s.name] || s.logo;
-  return `<div class="tile ${t.glow ? "merged" : ""}"
-    data-id="${t.id}" data-pos="${i}" data-value="${t.value}"
-    data-level="${level(t.value)}"
-    style="--r:${Math.floor(i / 4) + 1};--c:${i % 4 + 1}"
-    title="${s.name}">
-    ${src ? `<img src="${src}" alt="${s.name} logo"
-      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ""}
-    <div class="fallback" style="${src ? 'display:none' : ''}">${s.short}</div>
-  </div>`;
+  const row = Math.floor(index / 4);
+  const col = index % 4;
+
+  return `
+    <div class="tile ${tile.glow ? "merged" : ""}"
+      data-id="${tile.id}"
+      data-level="${level(tile.value)}"
+      data-value="${tile.value}"
+      style="--r:${row};--c:${col};transform:translate(${col * 100}%,${row * 100}%)"
+      title="${school.name}">
+      <img src="${school.logo}" alt="${school.name} logo"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="fallback" style="display:none">${school.short}</div>
+    </div>`;
 }
 
+/* Keep tile elements alive and animate their positions with Web Animations.
+   This prevents the jump caused by deleting and recreating every tile. */
 function render(animate = true) {
-  const layer = el("tileLayer");
-  const existing = [...layer.querySelectorAll(".tile")];
-  const oldRects = new Map(
-    existing.map(t => [t.dataset.id, t.getBoundingClientRect()])
+  const layer = $("tileLayer");
+  const oldTiles = new Map(
+    [...layer.querySelectorAll(".tile")].map(tile => [
+      Number(tile.dataset.id),
+      { element: tile, rect: tile.getBoundingClientRect() }
+    ])
   );
 
-  layer.innerHTML = board.map((t, i) => t ? tileHTML(t, i) : "").join("");
+  const existingIds = new Set(board.filter(Boolean).map(t => t.id));
 
-  for (const tile of layer.querySelectorAll(".tile")) {
-    const old = oldRects.get(tile.dataset.id);
-    if (!old || !animate ||
-        matchMedia("(prefers-reduced-motion: reduce)").matches) continue;
-
-    const rect = tile.getBoundingClientRect();
-    const dx = old.left - rect.left;
-    const dy = old.top - rect.top;
-
-    if (Math.abs(dx) + Math.abs(dy) > 1) {
-      tile.animate(
-        [{transform:`translate(${dx}px,${dy}px)`},{transform:"translate(0,0)"}],
-        {duration:210,easing:"cubic-bezier(.2,.75,.25,1)"}
-      );
-    }
+  for (const [id, entry] of oldTiles) {
+    if (!existingIds.has(id)) entry.element.remove();
   }
 
-  for (const t of board) if (t) t.glow = false;
-  el("score").textContent = score;
-  el("best").textContent = best;
+  board.forEach((tile, index) => {
+    if (!tile) return;
+
+    let element = layer.querySelector(`[data-id="${tile.id}"]`);
+
+    if (!element) {
+      layer.insertAdjacentHTML("beforeend", tileHTML(tile, index));
+      element = layer.querySelector(`[data-id="${tile.id}"]`);
+      element.style.transform = `translate(${(index % 4) * 100}%,${Math.floor(index / 4) * 100}%)`;
+      return;
+    }
+
+    const oldRect = oldTiles.get(tile.id)?.rect;
+    const row = Math.floor(index / 4);
+    const col = index % 4;
+    const newTransform = `translate(${col * 100}%,${row * 100}%)`;
+
+    element.dataset.level = level(tile.value);
+    element.dataset.value = tile.value;
+    element.title = schoolFor(tile.value).name;
+
+    if (tile.glow) {
+      element.classList.remove("merged");
+      void element.offsetWidth;
+      element.classList.add("merged");
+    }
+
+    if (animate && oldRect && !reducedMotion.matches) {
+      const newRect = element.getBoundingClientRect();
+      const dx = oldRect.left - newRect.left;
+      const dy = oldRect.top - newRect.top;
+
+      element.style.transform = `translate(${col * 100}%,${row * 100}%)`;
+
+      if (Math.abs(dx) + Math.abs(dy) > 1) {
+        element.animate([
+          { transform: `translate(${col * 100}%,${row * 100}%) translate(${dx}px,${dy}px)` },
+          { transform: newTransform }
+        ], {
+          duration: 180,
+          easing: "cubic-bezier(0.2, 0.75, 0.25, 1)"
+        });
+      }
+    } else {
+      element.style.transform = newTransform;
+    }
+
+    tile.glow = false;
+  });
+
+  $("score").textContent = score;
+  $("best").textContent = best;
 }
 
 function spawn() {
-  const empty = board.map((t, i) => t === null ? i : -1).filter(i => i >= 0);
+  const empty = board.map((tile, i) => tile === null ? i : -1).filter(i => i >= 0);
   if (!empty.length) return;
-  const i = empty[Math.floor(Math.random() * empty.length)];
-  board[i] = {id:nextId++,value:Math.random() < 0.9 ? 2 : 4};
+
+  const index = empty[Math.floor(Math.random() * empty.length)];
+  board[index] = { id: nextId++, value: Math.random() < 0.9 ? 2 : 4, glow: false };
 }
 
 function start() {
   board = Array(16).fill(null);
+  nextId = 1;
   score = 0;
   won = false;
   unlocked = new Set([2, 4]);
+  busy = false;
+  $("tileLayer").innerHTML = "";
   spawn();
   spawn();
   render(false);
 }
 
 function slideLine(line) {
-  const vals = line.filter(Boolean);
-  const out = [];
+  const tiles = line.filter(Boolean);
+  const output = [];
 
-  for (let i = 0; i < vals.length; i++) {
-    if (vals[i].value === vals[i + 1]?.value &&
-        schoolFor(vals[i].value * 2)) {
-      const mergedValue = vals[i].value * 2;
-      const isNewUnlock = !unlocked.has(mergedValue);
-      unlocked.add(mergedValue);
-      out.push({id:vals[i].id,value:mergedValue,glow:isNewUnlock});
-      score += mergedValue;
+  for (let i = 0; i < tiles.length; i++) {
+    if (
+      tiles[i].value === tiles[i + 1]?.value &&
+      schoolFor(tiles[i].value * 2)
+    ) {
+      const value = tiles[i].value * 2;
+      const isNewUnlock = !unlocked.has(value);
+      unlocked.add(value);
+
+      output.push({
+        id: tiles[i].id,
+        value,
+        glow: isNewUnlock
+      });
+
+      score += value;
       i++;
 
-      if (mergedValue === schools[schools.length - 1].value && !won) {
+      if (value === 2048 && !won) {
         won = true;
-        setTimeout(() => alert("YOU GOT NDP! 💗"), 160);
+        setTimeout(() => alert("YOU GOT NDP! 💗"), 220);
       }
     } else {
-      out.push(vals[i]);
+      output.push({...tiles[i], glow:false});
     }
   }
 
-  while (out.length < 4) out.push(null);
-  return out;
+  while (output.length < 4) output.push(null);
+  return output;
 }
 
-function move(dir) {
-  const old = board.map(t => t ? {...t} : null);
+function move(direction) {
+  if (busy) return;
+
+  const oldBoard = board.map(tile => tile ? {...tile} : null);
   const next = Array(16).fill(null);
 
-  for (let n = 0; n < 4; n++) {
-    const inds = [];
+  for (let line = 0; line < 4; line++) {
+    const indices = [];
+
     for (let k = 0; k < 4; k++) {
-      if (dir === "left") inds.push(n * 4 + k);
-      if (dir === "right") inds.push(n * 4 + 3 - k);
-      if (dir === "up") inds.push(k * 4 + n);
-      if (dir === "down") inds.push((3 - k) * 4 + n);
+      if (direction === "left") indices.push(line * 4 + k);
+      if (direction === "right") indices.push(line * 4 + 3 - k);
+      if (direction === "up") indices.push(k * 4 + line);
+      if (direction === "down") indices.push((3 - k) * 4 + line);
     }
 
-    const vals = slideLine(inds.map(i => old[i]));
-    inds.forEach((idx, j) => next[idx] = vals[j]);
+    const result = slideLine(indices.map(i => oldBoard[i]));
+    indices.forEach((index, i) => next[index] = result[i]);
   }
 
-  if (next.every((t, i) => (t?.value || 0) === (old[i]?.value || 0))) return;
+  if (next.every((tile, i) => (tile?.value || 0) === (oldBoard[i]?.value || 0))) {
+    return;
+  }
 
   board = next;
   spawn();
   best = Math.max(best, score);
-  try { localStorage.setItem("getNDPBest", best); } catch (e) {}
+
+  try {
+    localStorage.setItem("getNDPBest", best);
+  } catch (error) {}
+
   render(true);
 }
 
-document.addEventListener("keydown", e => {
-  const map = {
+document.addEventListener("keydown", event => {
+  const keys = {
     ArrowLeft:"left", a:"left", A:"left",
     ArrowRight:"right", d:"right", D:"right",
     ArrowUp:"up", w:"up", W:"up",
     ArrowDown:"down", s:"down", S:"down"
   };
 
-  if (map[e.key] &&
-      !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
-    e.preventDefault();
-    move(map[e.key]);
+  if (keys[event.key] && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
+    event.preventDefault();
+    move(keys[event.key]);
   }
 });
 
-let sx = 0, sy = 0;
-
-el("board").addEventListener("touchstart", e => {
-  sx = e.changedTouches[0].screenX;
-  sy = e.changedTouches[0].screenY;
+$("board").addEventListener("touchstart", event => {
+  touchStartX = event.changedTouches[0].screenX;
+  touchStartY = event.changedTouches[0].screenY;
 }, {passive:true});
 
-el("board").addEventListener("touchend", e => {
-  const dx = e.changedTouches[0].screenX - sx;
-  const dy = e.changedTouches[0].screenY - sy;
+$("board").addEventListener("touchend", event => {
+  const dx = event.changedTouches[0].screenX - touchStartX;
+  const dy = event.changedTouches[0].screenY - touchStartY;
+
   if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
 
   move(Math.abs(dx) > Math.abs(dy)
@@ -449,7 +514,7 @@ el("board").addEventListener("touchend", e => {
     : (dy > 0 ? "down" : "up"));
 }, {passive:true});
 
-el("newgame").onclick = start;
+$("newgame").addEventListener("click", start);
 
 start();
 </script>
