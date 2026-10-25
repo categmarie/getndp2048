@@ -1,16 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GET NDP</title>
+<title>GET NDP 💗</title>
 
 <style>
 :root {
-  --pink: #ed83b5;
-  --dark-pink: #d84d91;
+  --pink: #f5a6cf;
   --light-pink: #fff0f7;
-  --empty: #f5d9e7;
+  --dark-pink: #d84e99;
+  --cell: #f9dce9;
 }
 
 * { box-sizing: border-box; }
@@ -18,446 +19,647 @@
 body {
   margin: 0;
   padding: 24px 12px;
-  background: linear-gradient(135deg, #fff5fa, #f9d8e9);
-  color: #7c2853;
-  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #fff4fa, #f9d9eb);
+  color: #8f2863;
+  font-family: Arial, Helvetica, sans-serif;
   text-align: center;
 }
 
 h1 {
-  margin: 0;
-  color: #d84d91;
-  font-size: clamp(38px, 9vw, 62px);
+  margin: 4px 0;
+  font-size: clamp(38px, 8vw, 60px);
   font-weight: 900;
   letter-spacing: 2px;
 }
 
-.subtitle {
-  margin: 5px 0 18px;
-  color: #985075;
-}
+.subtitle { margin: 8px 0 18px; }
 
 .top {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  margin: 0 auto 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
 .score {
-  min-width: 85px;
-  padding: 10px 16px;
   background: white;
   border-radius: 12px;
+  padding: 10px 18px;
+  min-width: 95px;
   font-weight: bold;
+  box-shadow: 0 3px 10px #d77eaa33;
 }
 
-.score span {
+.score small {
   display: block;
-  color: #d84d91;
-  font-size: 22px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #b45b8a;
 }
 
 button {
   border: 0;
-  padding: 12px 17px;
   border-radius: 12px;
-  background: #d84d91;
+  padding: 12px 17px;
+  background: var(--dark-pink);
   color: white;
-  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
 }
 
-button:hover { background: #bd3679; }
+button:hover { filter: brightness(1.05); }
 
 #board {
-  --gap: 9px;
   position: relative;
   width: min(92vw, 430px);
   aspect-ratio: 1;
   margin: 0 auto;
-  padding: var(--gap);
+  padding: 10px;
+  background: #eeb5d1;
   border-radius: 17px;
-  background: #e8a5c7;
-  box-shadow: 0 8px 24px #a8447730;
+  box-shadow: 0 8px 24px #b65c8d33;
+  overflow: hidden;
   touch-action: none;
 }
 
-.cells {
+#cells {
   position: absolute;
-  inset: var(--gap);
+  inset: 10px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  gap: var(--gap);
+  gap: 9px;
 }
 
 .cell {
-  min-width: 0;
-  min-height: 0;
+  background: var(--cell);
   border-radius: 10px;
-  background: var(--empty);
 }
 
 #tiles {
   position: absolute;
-  inset: var(--gap);
+  inset: 10px;
   pointer-events: none;
 }
 
 .tile {
   position: absolute;
+  left: 0;
+  top: 0;
+  width: calc((100% - 27px) / 4);
+  height: calc((100% - 27px) / 4);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  padding: 5px;
   border-radius: 10px;
+  padding: 4px;
   background: white;
-  box-shadow: 0 2px 5px #84345b18;
-  transition: transform 160ms ease-in-out;
+  box-shadow: 0 3px 8px #a9437830;
+
+  /* Smooth movement: keep the same element as the tile moves. */
+  transition: transform 145ms cubic-bezier(.2, .75, .25, 1);
   will-change: transform;
 }
 
 .tile img {
   display: block;
+  max-width: 100%;
+  max-height: 100%;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 5px;
+  border-radius: 7px;
 }
 
-.tile.new {
-  animation: appear 140ms ease-out;
+.tile.spawn {
+  animation: appear 130ms ease-out;
+}
+
+.tile.merge {
+  animation: mergePop 180ms ease-out;
 }
 
 @keyframes appear {
-  from { opacity: .45; scale: .8; }
+  from { opacity: .5; scale: .7; }
   to { opacity: 1; scale: 1; }
 }
 
+@keyframes mergePop {
+  0% { scale: 1; }
+  55% { scale: 1.12; }
+  100% { scale: 1; }
+}
+
 .message {
-  margin: 16px auto 8px;
+  min-height: 24px;
+  margin: 14px 0 8px;
   font-weight: bold;
-  min-height: 20px;
 }
 
-.help {
-  max-width: 350px;
-  margin: 10px auto;
-  color: #985075;
-  font-size: 13px;
+.instructions {
+  max-width: 430px;
+  margin: 12px auto;
   line-height: 1.5;
+  font-size: 14px;
 }
 
-.credit {
-  margin-top: 20px;
-  color: #a56c8b;
-  font-size: 11px;
+footer {
+  margin-top: 25px;
+  font-size: 12px;
+  color: #a24a7a;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile { transition: none; }
-  .tile.new { animation: none; }
+  .tile { transition-duration: 1ms; }
 }
 </style>
 </head>
 
 <body>
-<h1>GET NDP</h1>
-<p class="subtitle">merge the schools. get to NDP 💗</p>
+  <h1>GET NDP</h1>
+  <p class="subtitle">merge the schools 💗</p>
 
-<div class="top">
-  <div class="score">SCORE <span id="score">0</span></div>
-  <button id="restart">New Game ↻</button>
-</div>
+  <div class="top">
+    <div class="score"><small>SCORE</small><span id="score">0</span></div>
+    <div class="score"><small>BEST</small><span id="best">0</span></div>
+    <button id="restart">New Game ↻</button>
+  </div>
 
-<div id="board" aria-label="2048 school logo game">
-  <div class="cells" id="cells"></div>
-  <div id="tiles"></div>
-</div>
+  <div id="board" aria-label="GET NDP game board">
+    <div id="cells"></div>
+    <div id="tiles"></div>
+  </div>
 
-<div class="message" id="message"></div>
-<p class="help">
-  Use your arrow keys to move the tiles, or swipe on the board.
-  Match two of the same school to combine them!
-</p>
+  <div class="message" id="message"></div>
+  <p class="instructions">
+    Use your arrow keys or swipe to move the logos.
+    Merge matching schools to work your way up to NDP!
+  </p>
 
-<div class="credit">Created by Cate Graham</div>
+  <footer>Created by Cate Graham</footer>
 
 <script>
-const SIZE = 4;
+(() => {
+  /*
+    IMPORTANT:
+    These image paths must match the names and folder in your
+    GitHub repository. This version expects a folder named "logos".
+  */
+  const schools = [
+    { name: "St. Ursula's", file: "images_sus.jpg" },
+    { name: "ICS", file: "ICS-Logo.jpg" },
+    { name: "St. Philip Neri", file: "images_spn.png" },
+    { name: "Maryvale", file: "images_maryvale.jpg" },
+    { name: "Catholic High", file: "images.jpg" },
+    { name: "Bryn Mawr", file: "bryn-mawr-school.jpg" },
+    { name: "RCPS", file: "Rpcs_logo2.png" },
+    { name: "John Carroll", file: "The_John_Carroll_School_Logo.jpeg" },
+    { name: "Mercy", file: "MHS_Seal_ONLY.jpg" },
+    { name: "Mount de Sales", file: "Mount_de_Sales_Academy_Logo.png" },
+    { name: "NDP", file: "images_ndp.jpg" }
+  ];
 
-const schools = [
-  { name: "St. Ursula's", image: "logos/images_sus.jpg" },
-  { name: "ICS", image: "logos/ICS-Logo.jpg" },
-  { name: "St. Philip Neri", image: "logos/images_spn.png" },
-  { name: "Maryvale", image: "logos/images_maryvale.jpg" },
-  { name: "Catholic High", image: "logos/images.jpg" },
-  { name: "Bryn Mawr", image: "logos/bryn-mawr-school.jpg" },
-  { name: "RCPS", image: "logos/Rpcs_logo2.png" },
-  { name: "John Carroll", image: "logos/The_John_Carroll_School_Logo.jpeg" },
-  { name: "Mercy", image: "logos/MHS_Seal_ONLY.jpg" },
-  { name: "Mount de Sales", image: "logos/Mount_de_Sales_Academy_Logo.png" },
-  { name: "NDP", image: "logos/images_ndp.jpg" }
-];
+  const SIZE = 4;
+  const boardEl = document.getElementById("board");
+  const tilesEl = document.getElementById("tiles");
+  const cellsEl = document.getElementById("cells");
+  const scoreEl = document.getElementById("score");
+  const bestEl = document.getElementById("best");
+  const messageEl = document.getElementById("message");
 
-const board = document.getElementById("board");
-const tilesLayer = document.getElementById("tiles");
-const cellsLayer = document.getElementById("cells");
-const scoreDisplay = document.getElementById("score");
-const message = document.getElementById("message");
+  let board = [];
+  let score = 0;
+  let best = Number(localStorage.getItem("getNdpBest") || 0);
+  let nextId = 1;
+  let busy = false;
+  let touchStart = null;
+  let resizeObserver;
 
-let grid = [];
-let score = 0;
-let nextId = 1;
-let tileElements = new Map();
-let gameOver = false;
-let won = false;
+  bestEl.textContent = best;
 
-for (let i = 0; i < SIZE * SIZE; i++) {
-  const cell = document.createElement("div");
-  cell.className = "cell";
-  cellsLayer.appendChild(cell);
-}
-
-function dimensions() {
-  const gap = parseFloat(getComputedStyle(board).getPropertyValue("--gap")) || 9;
-  const width = tilesLayer.clientWidth;
-  const tileSize = (width - gap * (SIZE - 1)) / SIZE;
-  return { tileSize, gap };
-}
-
-function positionTile(el, index) {
-  const { tileSize, gap } = dimensions();
-  const row = Math.floor(index / SIZE);
-  const col = index % SIZE;
-
-  el.style.width = tileSize + "px";
-  el.style.height = tileSize + "px";
-  el.style.transform =
-    `translate(${col * (tileSize + gap)}px, ${row * (tileSize + gap)}px)`;
-}
-
-function makeTile(level) {
-  return { id: nextId++, level };
-}
-
-function addRandomTile() {
-  const empty = [];
-  grid.forEach((tile, index) => {
-    if (!tile) empty.push(index);
-  });
-
-  if (!empty.length) return;
-
-  const index = empty[Math.floor(Math.random() * empty.length)];
-  grid[index] = makeTile(Math.random() < 0.9 ? 1 : 2);
-}
-
-function render() {
-  const activeIds = new Set();
-
-  grid.forEach((tile, index) => {
-    if (!tile) return;
-
-    activeIds.add(tile.id);
-    let el = tileElements.get(tile.id);
-
-    if (!el) {
-      el = document.createElement("div");
-      el.className = "tile";
-
-      const img = document.createElement("img");
-      img.alt = "";
-      img.draggable = false;
-      el.appendChild(img);
-
-      img.src = schools[tile.level - 1].image;
-      img.onerror = () => {
-        img.alt = "Logo unavailable";
-      };
-
-      tilesLayer.appendChild(el);
-      tileElements.set(tile.id, el);
-
-      // Newly created tiles appear in place; existing tiles slide.
-      el.dataset.positioned = "false";
-      el.classList.add("new");
-    }
-
-    const img = el.querySelector("img");
-    const desiredImage = schools[tile.level - 1].image;
-
-    if (img.getAttribute("src") !== desiredImage) {
-      img.src = desiredImage;
-    }
-
-    positionTile(el, index);
-    el.dataset.positioned = "true";
-  });
-
-  for (const [id, el] of tileElements) {
-    if (!activeIds.has(id)) {
-      el.remove();
-      tileElements.delete(id);
-    }
+  // Draw the stationary spaces behind the moving logo tiles.
+  for (let i = 0; i < SIZE * SIZE; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cellsEl.appendChild(cell);
   }
 
-  scoreDisplay.textContent = score;
-}
-
-function slideLine(line) {
-  const values = line.filter(Boolean);
-  const result = [];
-  let gained = 0;
-
-  for (let i = 0; i < values.length; i++) {
-    if (i + 1 < values.length &&
-        values[i].level === values[i + 1].level) {
-      const merged = makeTile(values[i].level + 1);
-      result.push(merged);
-      gained += Math.pow(2, merged.level);
-      i++;
-    } else {
-      result.push(values[i]);
-    }
+  function emptyBoard() {
+    return Array.from({ length: SIZE }, () =>
+      Array(SIZE).fill(null)
+    );
   }
 
-  while (result.length < SIZE) result.push(null);
-  return { result, gained };
-}
-
-function move(direction) {
-  if (gameOver) return;
-
-  const previous = grid.map(tile => tile ? { ...tile } : null);
-  let changed = false;
-  let gained = 0;
-
-  for (let lineIndex = 0; lineIndex < SIZE; lineIndex++) {
-    const indexes = [];
-
-    for (let step = 0; step < SIZE; step++) {
-      if (direction === "left") indexes.push(lineIndex * SIZE + step);
-      if (direction === "right") indexes.push(lineIndex * SIZE + (SIZE - 1 - step));
-      if (direction === "up") indexes.push(step * SIZE + lineIndex);
-      if (direction === "down") indexes.push((SIZE - 1 - step) * SIZE + lineIndex);
-    }
-
-    const line = indexes.map(index => grid[index]);
-    const { result, gained: lineScore } = slideLine(line);
-    gained += lineScore;
-
-    indexes.forEach((index, i) => {
-      grid[index] = result[i];
-    });
+  function makeTile(level, row, col) {
+    return {
+      id: nextId++,
+      level,
+      row,
+      col
+    };
   }
 
-  changed = grid.some((tile, i) =>
-    (tile?.id ?? null) !== (previous[i]?.id ?? null)
-  );
+  function addRandomTile() {
+    const empty = [];
 
-  if (!changed) return;
-
-  score += gained;
-  addRandomTile();
-  render();
-
-  if (!won && grid.some(tile => tile && tile.level === schools.length)) {
-    won = true;
-    message.textContent = "YOU GOT NDP! 💗";
-  } else {
-    message.textContent = "";
-  }
-
-  if (!canMove()) {
-    gameOver = true;
-    message.textContent = won ? "YOU GOT NDP! 💗" : "Game over! Try again!";
-  }
-}
-
-function canMove() {
-  if (grid.some(tile => !tile)) return true;
-
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      const tile = grid[r * SIZE + c];
-      if (c < SIZE - 1 && tile.level === grid[r * SIZE + c + 1].level) return true;
-      if (r < SIZE - 1 && tile.level === grid[(r + 1) * SIZE + c].level) return true;
-    }
-  }
-  return false;
-}
-
-function newGame() {
-  grid = Array(SIZE * SIZE).fill(null);
-  score = 0;
-  nextId = 1;
-  gameOver = false;
-  won = false;
-  tileElements.forEach(el => el.remove());
-  tileElements.clear();
-  message.textContent = "";
-  addRandomTile();
-  addRandomTile();
-  render();
-}
-
-document.addEventListener("keydown", event => {
-  const directions = {
-    ArrowLeft: "left",
-    ArrowRight: "right",
-    ArrowUp: "up",
-    ArrowDown: "down"
-  };
-
-  if (directions[event.key]) {
-    event.preventDefault();
-    move(directions[event.key]);
-  }
-});
-
-let touchStartX = 0;
-let touchStartY = 0;
-
-board.addEventListener("touchstart", event => {
-  const touch = event.changedTouches[0];
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
-}, { passive: true });
-
-board.addEventListener("touchend", event => {
-  const touch = event.changedTouches[0];
-  const dx = touch.clientX - touchStartX;
-  const dy = touch.clientY - touchStartY;
-
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
-
-  if (Math.abs(dx) > Math.abs(dy)) {
-    move(dx > 0 ? "right" : "left");
-  } else {
-    move(dy > 0 ? "down" : "up");
-  }
-}, { passive: true });
-
-document.getElementById("restart").addEventListener("click", newGame);
-
-window.addEventListener("resize", () => {
-  grid.forEach((tile, index) => {
-    if (tile) {
-      const el = tileElements.get(tile.id);
-      if (el) {
-        el.style.transition = "none";
-        positionTile(el, index);
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        if (!board[r][c]) empty.push([r, c]);
       }
     }
-  });
-});
 
-newGame();
+    if (!empty.length) return;
+
+    const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+    const level = Math.random() < 0.9 ? 1 : 2;
+    board[r][c] = makeTile(level, r, c);
+  }
+
+  function cellSize() {
+    const gap = 9;
+    const total = tilesEl.clientWidth;
+    return (total - gap * 3) / 4;
+  }
+
+  function positionFor(row, col) {
+    const gap = 9;
+    const step = cellSize() + gap;
+    return `translate(${col * step}px, ${row * step}px)`;
+  }
+
+  function render() {
+    const existing = new Map(
+      [...tilesEl.querySelectorAll(".tile")].map(el => [
+        Number(el.dataset.id), el
+      ])
+    );
+
+    const liveIds = new Set();
+
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const tile = board[r][c];
+        if (!tile) continue;
+
+        liveIds.add(tile.id);
+        let el = existing.get(tile.id);
+
+        if (!el) {
+          el = document.createElement("div");
+          el.className = "tile";
+          el.dataset.id = tile.id;
+
+          const img = document.createElement("img");
+          img.alt = schools[tile.level - 1].name;
+          img.draggable = false;
+          img.src = "logos/" + schools[tile.level - 1].file;
+
+          img.onerror = () => {
+            img.alt = schools[tile.level - 1].name + " logo unavailable";
+            img.style.display = "none";
+            el.title = "Logo not found: " + img.src;
+            el.style.border = "2px dashed #d84e99";
+          };
+
+          el.appendChild(img);
+          tilesEl.appendChild(el);
+
+          // Start new tiles at their destination; don't send them
+          // to (0,0), which is the top-left corner of the board.
+          el.style.transform = positionFor(r, c);
+          el.classList.add("spawn");
+          el.addEventListener("animationend", () => {
+            el.classList.remove("spawn");
+          }, { once: true });
+        } else {
+          const img = el.querySelector("img");
+          const expectedSrc = new URL(
+            "logos/" + schools[tile.level - 1].file,
+            window.location.href
+          ).href;
+
+          if (img.src !== expectedSrc) {
+            img.src = "logos/" + schools[tile.level - 1].file;
+            img.alt = schools[tile.level - 1].name;
+          }
+        }
+
+        // Update the position on the same element, allowing CSS
+        // to animate from its previous position to the new one.
+        el.style.transform = positionFor(r, c);
+        el.title = schools[tile.level - 1].name;
+      }
+    }
+
+    for (const [id, el] of existing) {
+      if (!liveIds.has(id)) el.remove();
+    }
+
+    scoreEl.textContent = score;
+    bestEl.textContent = best;
+  }
+
+  function move(direction) {
+    if (busy) return;
+
+    const before = board.map(row =>
+      row.map(t => t ? { ...t } : null)
+    );
+
+    const next = emptyBoard();
+    let gained = 0;
+    let changed = false;
+
+    // Build each line in movement order.
+    for (let line = 0; line < SIZE; line++) {
+      const coords = [];
+
+      for (let i = 0; i < SIZE; i++) {
+        let r, c;
+
+        if (direction === "left")  { r = line; c = i; }
+        if (direction === "right") { r = line; c = SIZE - 1 - i; }
+        if (direction === "up")    { r = i; c = line; }
+        if (direction === "down")  { r = SIZE - 1 - i; c = line; }
+
+        coords.push([r, c]);
+      }
+
+      const tiles = coords
+        .map(([r, c]) => board[r][c])
+        .filter(Boolean);
+
+      const packed = [];
+
+      for (let i = 0; i < tiles.length; i++) {
+        const current = tiles[i];
+        const following = tiles[i + 1];
+
+        if (
+          following &&
+          current.level === following.level &&
+          current.level < schools.length
+        ) {
+          // Keep a stable ID for the moving tile. Its new logo is
+          // changed only after the slide finishes.
+          packed.push({
+            id: current.id,
+            level: current.level + 1,
+            row: 0,
+            col: 0,
+            merged: true
+          });
+
+          gained += Math.pow(2, current.level);
+          i++;
+        } else {
+          packed.push({
+            id: current.id,
+            level: current.level,
+            row: 0,
+            col: 0
+          });
+        }
+      }
+
+      packed.forEach((tile, i) => {
+        const [r, c] = coords[i];
+        tile.row = r;
+        tile.col = c;
+        next[r][c] = tile;
+      });
+    }
+
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const oldTile = before[r][c];
+        const newTile = next[r][c];
+
+        if (
+          (oldTile && !newTile) ||
+          (!oldTile && newTile) ||
+          (oldTile && newTile &&
+            (oldTile.id !== newTile.id ||
+             oldTile.level !== newTile.level))
+        ) {
+          changed = true;
+        }
+      }
+    }
+
+    if (!changed) return;
+
+    // Keep old logo images while the existing tiles slide.
+    // After the transition, update merged logos and add a new tile.
+    const oldLevels = new Map();
+    before.flat().forEach(t => {
+      if (t) oldLevels.set(t.id, t.level);
+    });
+
+    board = next;
+
+    for (const row of board) {
+      for (const tile of row) {
+        if (!tile) continue;
+        tile.oldLevel = oldLevels.get(tile.id) || tile.level;
+      }
+    }
+
+    // Render positions first; keep each moving DOM element alive.
+    renderMovingTiles();
+
+    score += gained;
+    if (score > best) {
+      best = score;
+      localStorage.setItem("getNdpBest", String(best));
+    }
+
+    busy = true;
+
+    window.setTimeout(() => {
+      // Change the logo only after its slide has completed.
+      for (const row of board) {
+        for (const tile of row) {
+          if (!tile) continue;
+
+          const el = tilesEl.querySelector(
+            `[data-id="${tile.id}"]`
+          );
+          if (!el) continue;
+
+          if (tile.oldLevel !== tile.level) {
+            const img = el.querySelector("img");
+            img.src = "logos/" + schools[tile.level - 1].file;
+            img.alt = schools[tile.level - 1].name;
+            el.classList.add("merge");
+            el.addEventListener("animationend", () => {
+              el.classList.remove("merge");
+            }, { once: true });
+          }
+          delete tile.oldLevel;
+        }
+      }
+
+      addRandomTile();
+      render();
+      busy = false;
+      checkGameState();
+    }, 155);
+  }
+
+  function renderMovingTiles() {
+    // Existing elements are repositioned without being recreated.
+    // This is what prevents the corner-jumping animation.
+    const existing = new Map(
+      [...tilesEl.querySelectorAll(".tile")].map(el => [
+        Number(el.dataset.id), el
+      ])
+    );
+
+    const alive = new Set();
+
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const tile = board[r][c];
+        if (!tile) continue;
+
+        alive.add(tile.id);
+        let el = existing.get(tile.id);
+
+        if (!el) {
+          el = document.createElement("div");
+          el.className = "tile";
+          el.dataset.id = tile.id;
+
+          const img = document.createElement("img");
+          img.alt = schools[tile.oldLevel - 1].name;
+          img.src = "logos/" + schools[tile.oldLevel - 1].file;
+          img.draggable = false;
+          el.appendChild(img);
+
+          // Place the new DOM node at its actual previous location
+          // before moving it to its destination.
+          const oldTile = findOldPosition(tile.id);
+          const oldRow = oldTile ? oldTile.row : r;
+          const oldCol = oldTile ? oldTile.col : c;
+
+          el.style.transform = positionFor(oldRow, oldCol);
+          tilesEl.appendChild(el);
+
+          // Force the browser to register the starting position.
+          void el.offsetWidth;
+        }
+
+        el.style.transform = positionFor(r, c);
+      }
+    }
+
+    for (const [id, el] of existing) {
+      if (!alive.has(id)) el.remove();
+    }
+
+    scoreEl.textContent = score;
+    bestEl.textContent = best;
+  }
+
+  // Find the old position from the last saved board snapshot.
+  // The move routine stores it before replacing the board.
+  let previousPositions = new Map();
+
+  function findOldPosition(id) {
+    return previousPositions.get(id) || null;
+  }
+
+  function checkGameState() {
+    const ndpReached = board.some(row =>
+      row.some(t => t && t.level === schools.length)
+    );
+
+    if (ndpReached) {
+      messageEl.textContent = "YOU GOT NDP!! 💗";
+      return;
+    }
+
+    messageEl.textContent = "";
+
+    const full = board.every(row => row.every(Boolean));
+    if (!full) return;
+
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const t = board[r][c];
+        if (
+          (r + 1 < SIZE && board[r + 1][c].level === t.level) ||
+          (c + 1 < SIZE && board[r][c + 1].level === t.level)
+        ) return;
+      }
+    }
+
+    messageEl.textContent = "Game over! Tap New Game to play again.";
+  }
+
+  function restart() {
+    board = emptyBoard();
+    score = 0;
+    nextId = 1;
+    busy = false;
+    messageEl.textContent = "";
+    tilesEl.innerHTML = "";
+    addRandomTile();
+    addRandomTile();
+    render();
+  }
+
+  document.getElementById("restart").addEventListener("click", restart);
+
+  document.addEventListener("keydown", event => {
+    const directions = {
+      ArrowLeft: "left",
+      ArrowRight: "right",
+      ArrowUp: "up",
+      ArrowDown: "down"
+    };
+
+    if (directions[event.key]) {
+      event.preventDefault();
+      move(directions[event.key]);
+    }
+  });
+
+  boardEl.addEventListener("touchstart", event => {
+    const t = event.changedTouches[0];
+    touchStart = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+
+  boardEl.addEventListener("touchend", event => {
+    if (!touchStart) return;
+
+    const t = event.changedTouches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+    touchStart = null;
+
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      move(dx > 0 ? "right" : "left");
+    } else {
+      move(dy > 0 ? "down" : "up");
+    }
+  }, { passive: true });
+
+  // Keep tile positions aligned if the board changes size.
+  if ("ResizeObserver" in window) {
+    resizeObserver = new ResizeObserver(() => render());
+    resizeObserver.observe(boardEl);
+  } else {
+    window.addEventListener("resize", render);
+  }
+
+  restart();
+})();
 </script>
 </body>
 </html>
