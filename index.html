@@ -5,279 +5,195 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GET NDP</title>
+
 <style>
-  * { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-  body {
-    margin: 0;
-    padding: 22px 12px 40px;
-    background: #fff0f6;
-    color: #4c1938;
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-  }
+body {
+  margin: 0;
+  padding: 24px 12px;
+  background: #fff0f6;
+  color: #702050;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
 
-  h1 {
-    font-size: clamp(42px, 10vw, 68px);
-    margin: 8px 0 0;
-    color: #b83280;
-    font-weight: 900;
-    letter-spacing: -3px;
-  }
+h1 {
+  margin: 4px 0;
+  color: #b83280;
+  font-size: clamp(44px, 10vw, 68px);
+  font-weight: 900;
+  letter-spacing: -3px;
+}
 
-  .subtitle {
-    margin: 8px auto 18px;
-    font-size: 15px;
-    max-width: 350px;
-  }
+.subtitle {
+  margin: 8px auto 18px;
+  font-size: 14px;
+}
 
-  .score-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin: 15px auto;
-  }
+.top {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 15px auto;
+}
 
-  .score-box {
-    background: #b83280;
-    color: white;
-    border-radius: 12px;
-    padding: 10px 18px;
-    min-width: 100px;
-    font-weight: bold;
-  }
+.score-box {
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: #b83280;
+  color: white;
+  font-weight: bold;
+}
 
-  .score-box span {
-    display: block;
-    font-size: 12px;
-    opacity: .9;
-    margin-bottom: 4px;
-  }
+.score-label {
+  display: block;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
 
-  button {
-    border: 0;
-    border-radius: 10px;
-    padding: 11px 16px;
-    background: #702050;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
-  }
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: #702050;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-  button:hover { background: #501538; }
+.game {
+  width: min(94vw, 440px);
+  margin: 18px auto;
+  padding: 9px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  background: #dca5c2;
+  border-radius: 16px;
+  touch-action: none;
+}
 
-  .game {
-    width: min(94vw, 440px);
-    margin: 18px auto;
-    padding: 9px;
-    background: #dca5c2;
-    border-radius: 16px;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    touch-action: none;
-  }
+.cell {
+  min-width: 0;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #f8d6e7;
+}
 
-  .cell {
-    min-width: 0;
-    aspect-ratio: 1 / 1;
-    background: #fce4ef;
-    border-radius: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-  }
+.tile {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  border-radius: 9px;
+  background: white;
+  animation: appear 0.12s ease-out;
+}
 
-  .tile {
-    width: 100%;
-    height: 100%;
-    padding: 5px 3px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 3px;
-    border-radius: 10px;
-    background: white;
-    animation: pop .12s ease-out;
-  }
+.tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
-  .tile img {
-    width: 58%;
-    height: 48%;
-    object-fit: contain;
-  }
+.empty {
+  background: #f8d6e7;
+}
 
-  .emoji {
-    font-size: clamp(20px, 5vw, 28px);
-    line-height: 1;
-  }
+.message {
+  min-height: 24px;
+  margin: 12px auto;
+  font-size: 14px;
+  font-weight: bold;
+}
 
-  .school {
-    font-size: clamp(8px, 2.4vw, 11px);
-    font-weight: 800;
-    line-height: 1.1;
-    overflow-wrap: anywhere;
-  }
+.instructions {
+  max-width: 360px;
+  margin: 16px auto;
+  font-size: 13px;
+  line-height: 1.5;
+}
 
-  .number {
-    font-size: 10px;
-    color: #9b4776;
-    font-weight: bold;
-  }
+.creator {
+  margin-top: 30px;
+  color: #a66a8c;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
 
-  .empty { background: #f8d6e7; }
-
-  .tile.t1 { background: #fff9fc; }
-  .tile.t2 { background: #fce0ed; }
-  .tile.t3 { background: #f7c9df; }
-  .tile.t4 { background: #f4b0d0; }
-  .tile.t5 { background: #f3a0c8; }
-  .tile.t6 { background: #e987b8; }
-  .tile.t7 { background: #db70a8; color: white; }
-  .tile.t8 { background: #c95b96; color: white; }
-  .tile.t9 { background: #b84281; color: white; }
-  .tile.t10 { background: #94346d; color: white; }
-  .tile.t11 { background: #702050; color: white; }
-
-  .tile.t7 .number, .tile.t8 .number,
-  .tile.t9 .number, .tile.t10 .number,
-  .tile.t11 .number { color: white; }
-
-  .instructions {
-    max-width: 400px;
-    margin: 15px auto;
-    line-height: 1.5;
-    font-size: 14px;
-  }
-
-  .message {
-    min-height: 28px;
-    margin: 12px auto;
-    font-weight: bold;
-    color: #9b2867;
-  }
-
-  .win {
-    background: #702050;
-    color: white;
-    padding: 18px;
-    border-radius: 15px;
-    max-width: 440px;
-    margin: 15px auto;
-  }
-
-  .win h2 { margin: 0 0 8px; }
-
-  @keyframes pop {
-    from { transform: scale(.92); }
-    to { transform: scale(1); }
-  }
+@keyframes appear {
+  from { transform: scale(0.92); }
+  to { transform: scale(1); }
+}
 </style>
 </head>
+
 <body>
 
 <h1>GET NDP</h1>
-<p class="subtitle">Combine other high schools to reach the almighty NDP! 🐆</p>
+<p class="subtitle">
+  Combine other high schools to reach the almighty NDP!
+</p>
 
-<div class="score-row">
+<div class="top">
   <div class="score-box">
-    <span>SCORE</span>
-    <div id="score">0</div>
+    <span class="score-label">SCORE</span>
+    <span id="score">0</span>
   </div>
-  <div class="score-box">
-    <span>BEST</span>
-    <div id="best">0</div>
-  </div>
-  <button onclick="newGame()">New Game ↻</button>
+  <button onclick="newGame()">New Game</button>
 </div>
 
-<div id="game" class="game" aria-label="GET NDP game board"></div>
+<div id="game" class="game"></div>
 <div id="message" class="message">Use your arrow keys to play!</div>
-<div id="win" class="win" hidden>
-  <h2>🐆 YOU GOT NDP! 🐆</h2>
-  You reached the almighty NDP!
-  <br><br>
-  <button onclick="newGame()">Play Again</button>
-</div>
 
 <p class="instructions">
-  <strong>How to play:</strong> Use your arrow keys, or swipe on the board.
-  Match two identical schools to combine them into the next school.
+  Use your arrow keys or swipe to move the photos.
+  Matching schools combine into the next school.
   Keep going until you reach NDP!
 </p>
 
+<div class="creator">Created by Cate Graham</div>
+
 <script>
 const schools = [
-  {
-    value: 2, name: "St. Ursula's", emoji: "🐻",
-    logo: "images_sus.jpg"
-  },
-  {
-    value: 4, name: "ICS", emoji: "🦅",
-    logo: "ICS-Logo.jpg"
-  },
-  {
-    value: 8, name: "St. Philip Neri", emoji: "🐾",
-    logo: "images_spn.png"
-  },
-  {
-    value: 16, name: "Maryvale", emoji: "🦁",
-    logo: "images_maryvale.jpg"
-  },
-  {
-    value: 32, name: "Catholic High", emoji: "💙",
-    logo: "images.jpg"
-  },
-  {
-    value: 64, name: "Bryn Mawr", emoji: "🦉",
-    logo: "bryn-mawr-school.jpg"
-  },
-  {
-    value: 128, name: "RCPS", emoji: "🏫",
-    logo: "Rpcs_logo2.png"
-  },
-  {
-    value: 256, name: "John Carroll", emoji: "🏹",
-    logo: "The_John_Carroll_School_Logo.jpeg"
-  },
-  {
-    value: 512, name: "Mercy", emoji: "💜",
-    logo: "MHS_Seal_ONLY.jpg"
-  },
-  {
-    value: 1024, name: "Mount de Sales", emoji: "⭐",
-    logo: "Mount_de_Sales_Academy_Logo.png"
-  },
-  {
-    value: 2048, name: "NDP", emoji: "🐆",
-    logo: "images_ndp.jpg"
-  }
+  { value: 2, logo: "images_sus.jpg" },
+  { value: 4, logo: "ICS-Logo.jpg" },
+  { value: 8, logo: "images_spn.png" },
+  { value: 16, logo: "images_maryvale.jpg" },
+  { value: 32, logo: "images.jpg" },
+  { value: 64, logo: "bryn-mawr-school.jpg" },
+  { value: 128, logo: "Rpcs_logo2.png" },
+  { value: 256, logo: "The_John_Carroll_School_Logo.jpeg" },
+  { value: 512, logo: "MHS_Seal_ONLY.jpg" },
+  { value: 1024, logo: "Mount_de_Sales_Academy_Logo.png" },
+  { value: 2048, logo: "images_ndp.jpg" }
 ];
 
-const size = 4;
+const SIZE = 4;
 let board = [];
 let score = 0;
-let best = 0;
-let won = false;
 let gameOver = false;
 
 const gameEl = document.getElementById("game");
 const scoreEl = document.getElementById("score");
-const bestEl = document.getElementById("best");
 const messageEl = document.getElementById("message");
-const winEl = document.getElementById("win");
 
 function newGame() {
   board = Array(16).fill(0);
   score = 0;
-  won = false;
   gameOver = false;
-  winEl.hidden = true;
   messageEl.textContent = "Use your arrow keys to play!";
   addTile();
   addTile();
@@ -285,17 +201,14 @@ function newGame() {
 }
 
 function addTile() {
-  const empty = [];
-  board.forEach((v, i) => {
-    if (v === 0) empty.push(i);
-  });
-  if (!empty.length) return;
-  const spot = empty[Math.floor(Math.random() * empty.length)];
-  board[spot] = Math.random() < 0.9 ? 2 : 4;
-}
+  const empty = board
+    .map((value, index) => value === 0 ? index : -1)
+    .filter(index => index !== -1);
 
-function schoolFor(value) {
-  return schools.find(s => s.value === value);
+  if (!empty.length) return;
+
+  const index = empty[Math.floor(Math.random() * empty.length)];
+  board[index] = Math.random() < 0.9 ? 2 : 4;
 }
 
 function render() {
@@ -305,31 +218,24 @@ function render() {
     const cell = document.createElement("div");
     cell.className = "cell";
 
-    if (!value) {
+    if (value === 0) {
       cell.classList.add("empty");
     } else {
-      const school = schoolFor(value);
+      const school = schools.find(item => item.value === value);
       const tile = document.createElement("div");
-      tile.className = "tile t" + Math.min(11, Math.log2(value));
+      tile.className = "tile";
 
       const img = document.createElement("img");
       img.src = "logos/" + school.logo;
-      img.alt = school.name + " logo";
-      img.onerror = () => { img.style.display = "none"; };
+      img.alt = "";
+      img.draggable = false;
 
-      const emoji = document.createElement("div");
-      emoji.className = "emoji";
-      emoji.textContent = school.emoji;
+      img.onerror = () => {
+        img.style.visibility = "hidden";
+        cell.style.background = "#ffffff";
+      };
 
-      const name = document.createElement("div");
-      name.className = "school";
-      name.textContent = school.name;
-
-      const number = document.createElement("div");
-      number.className = "number";
-      number.textContent = value;
-
-      tile.append(img, emoji, name, number);
+      tile.appendChild(img);
       cell.appendChild(tile);
     }
 
@@ -337,74 +243,70 @@ function render() {
   });
 
   scoreEl.textContent = score;
-  bestEl.textContent = best;
 
   if (board.includes(2048)) {
-    messageEl.textContent = "You reached the almighty NDP! 🐆";
+    messageEl.textContent = "You reached NDP!";
   } else if (gameOver) {
-    messageEl.textContent = "No moves left! Try a new game.";
+    messageEl.textContent = "No moves left! Start a new game.";
   }
 }
 
 function slideLine(line) {
-  const filtered = line.filter(v => v !== 0);
+  const values = line.filter(value => value !== 0);
   const result = [];
 
-  for (let i = 0; i < filtered.length; i++) {
-    if (filtered[i] === filtered[i + 1] && filtered[i] < 2048) {
-      const merged = filtered[i] * 2;
+  for (let i = 0; i < values.length; i++) {
+    if (values[i] === values[i + 1] && values[i] < 2048) {
+      const merged = values[i] * 2;
       result.push(merged);
       score += merged;
       i++;
     } else {
-      result.push(filtered[i]);
+      result.push(values[i]);
     }
   }
 
-  while (result.length < size) result.push(0);
+  while (result.length < SIZE) result.push(0);
   return result;
 }
 
 function move(direction) {
   if (gameOver || board.includes(2048)) return;
 
-  const before = board.join(",");
+  const previous = board.join(",");
   const next = Array(16).fill(0);
 
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      let index;
-      if (direction === "left") index = r * size + c;
-      if (direction === "right") index = r * size + (size - 1 - c);
-      if (direction === "up") index = c * size + r;
-      if (direction === "down") index = (size - 1 - c) * size + r;
-      if (!next[r * size + c] && board[index] === undefined) continue;
-    }
-  }
-
-  for (let lineIndex = 0; lineIndex < size; lineIndex++) {
+  for (let lineIndex = 0; lineIndex < SIZE; lineIndex++) {
     let line = [];
 
-    for (let position = 0; position < size; position++) {
+    for (let position = 0; position < SIZE; position++) {
       let index;
 
-      if (direction === "left") index = lineIndex * size + position;
-      if (direction === "right") index = lineIndex * size + (size - 1 - position);
-      if (direction === "up") index = position * size + lineIndex;
-      if (direction === "down") index = (size - 1 - position) * size + lineIndex;
+      if (direction === "left")
+        index = lineIndex * SIZE + position;
+      if (direction === "right")
+        index = lineIndex * SIZE + (SIZE - 1 - position);
+      if (direction === "up")
+        index = position * SIZE + lineIndex;
+      if (direction === "down")
+        index = (SIZE - 1 - position) * SIZE + lineIndex;
 
       line.push(board[index]);
     }
 
     const moved = slideLine(line);
 
-    for (let position = 0; position < size; position++) {
+    for (let position = 0; position < SIZE; position++) {
       let index;
 
-      if (direction === "left") index = lineIndex * size + position;
-      if (direction === "right") index = lineIndex * size + (size - 1 - position);
-      if (direction === "up") index = position * size + lineIndex;
-      if (direction === "down") index = (size - 1 - position) * size + lineIndex;
+      if (direction === "left")
+        index = lineIndex * SIZE + position;
+      if (direction === "right")
+        index = lineIndex * SIZE + (SIZE - 1 - position);
+      if (direction === "up")
+        index = position * SIZE + lineIndex;
+      if (direction === "down")
+        index = (SIZE - 1 - position) * SIZE + lineIndex;
 
       next[index] = moved[position];
     }
@@ -412,15 +314,10 @@ function move(direction) {
 
   board = next;
 
-  if (board.join(",") !== before) {
+  if (board.join(",") !== previous) {
     addTile();
-    best = Math.max(best, score);
-    if (board.includes(2048) && !won) {
-      won = true;
-      winEl.hidden = false;
-      messageEl.textContent = "You reached the almighty NDP! 🐆";
-    }
     render();
+
     if (!board.includes(2048) && !canMove()) {
       gameOver = true;
       render();
@@ -438,32 +335,30 @@ function canMove() {
 }
 
 document.addEventListener("keydown", event => {
-  const directions = {
+  const keys = {
     ArrowLeft: "left",
     ArrowRight: "right",
     ArrowUp: "up",
     ArrowDown: "down"
   };
 
-  if (directions[event.key]) {
+  if (keys[event.key]) {
     event.preventDefault();
-    move(directions[event.key]);
+    move(keys[event.key]);
   }
 });
 
-let touchStartX = 0;
-let touchStartY = 0;
+let startX = 0;
+let startY = 0;
 
 gameEl.addEventListener("touchstart", event => {
-  const touch = event.changedTouches[0];
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
+  startX = event.changedTouches[0].clientX;
+  startY = event.changedTouches[0].clientY;
 }, { passive: true });
 
 gameEl.addEventListener("touchend", event => {
-  const touch = event.changedTouches[0];
-  const dx = touch.clientX - touchStartX;
-  const dy = touch.clientY - touchStartY;
+  const dx = event.changedTouches[0].clientX - startX;
+  const dy = event.changedTouches[0].clientY - startY;
 
   if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
 
