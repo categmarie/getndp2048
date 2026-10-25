@@ -1,109 +1,124 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GET NDP</title>
+
 <style>
+:root {
+  --pink: #ed83b5;
+  --dark-pink: #d84d91;
+  --light-pink: #fff0f7;
+  --empty: #f5d9e7;
+}
+
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
   padding: 24px 12px;
-  background: #fff0f6;
-  color: #702050;
+  background: linear-gradient(135deg, #fff5fa, #f9d8e9);
+  color: #7c2853;
   font-family: Arial, sans-serif;
   text-align: center;
 }
 
 h1 {
-  margin: 4px 0;
-  color: #b83280;
-  font-size: clamp(44px, 10vw, 68px);
+  margin: 0;
+  color: #d84d91;
+  font-size: clamp(38px, 9vw, 62px);
   font-weight: 900;
-  letter-spacing: -3px;
+  letter-spacing: 2px;
 }
 
-.subtitle { margin: 8px auto 18px; font-size: 14px; }
+.subtitle {
+  margin: 5px 0 18px;
+  color: #985075;
+}
 
 .top {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
-  margin: 15px auto;
+  gap: 10px;
+  margin: 0 auto 16px;
 }
 
-.score-box {
-  padding: 10px 20px;
-  border-radius: 10px;
-  background: #b83280;
-  color: white;
+.score {
+  min-width: 85px;
+  padding: 10px 16px;
+  background: white;
+  border-radius: 12px;
   font-weight: bold;
 }
 
-.score-label {
+.score span {
   display: block;
-  font-size: 11px;
-  margin-bottom: 4px;
+  color: #d84d91;
+  font-size: 22px;
 }
 
 button {
-  border: none;
-  border-radius: 10px;
-  padding: 12px 16px;
-  background: #702050;
+  border: 0;
+  padding: 12px 17px;
+  border-radius: 12px;
+  background: #d84d91;
   color: white;
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
 }
 
-.game {
+button:hover { background: #bd3679; }
+
+#board {
+  --gap: 9px;
   position: relative;
-  width: min(94vw, 440px);
+  width: min(92vw, 430px);
   aspect-ratio: 1;
-  margin: 18px auto;
-  padding: 9px;
-  background: #dca5c2;
-  border-radius: 16px;
+  margin: 0 auto;
+  padding: var(--gap);
+  border-radius: 17px;
+  background: #e8a5c7;
+  box-shadow: 0 8px 24px #a8447730;
   touch-action: none;
-  overflow: hidden;
 }
 
-.grid, .tiles {
+.cells {
   position: absolute;
-  inset: 9px;
-}
-
-.grid {
+  inset: var(--gap);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  gap: 8px;
+  gap: var(--gap);
 }
 
-.empty {
-  background: #f8d6e7;
-  border-radius: 9px;
+.cell {
+  min-width: 0;
+  min-height: 0;
+  border-radius: 10px;
+  background: var(--empty);
 }
 
-.tiles { pointer-events: none; }
+#tiles {
+  position: absolute;
+  inset: var(--gap);
+  pointer-events: none;
+}
 
 .tile {
   position: absolute;
-  left: 0;
-  top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px;
-  border-radius: 9px;
-  background: white;
   overflow: hidden;
+  padding: 5px;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 2px 5px #84345b18;
+  transition: transform 160ms ease-in-out;
   will-change: transform;
-  transition: transform 140ms ease-in-out;
 }
 
 .tile img {
@@ -111,179 +126,178 @@ button {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  user-select: none;
-  -webkit-user-drag: none;
+  border-radius: 5px;
 }
 
-.tile.spawn {
-  animation: spawn 140ms ease-out;
+.tile.new {
+  animation: appear 140ms ease-out;
 }
 
-.tile.merge {
-  animation: merge 150ms ease-out;
+@keyframes appear {
+  from { opacity: .45; scale: .8; }
+  to { opacity: 1; scale: 1; }
 }
 
 .message {
-  min-height: 24px;
-  margin: 12px auto;
-  font-size: 14px;
+  margin: 16px auto 8px;
   font-weight: bold;
+  min-height: 20px;
 }
 
-.instructions {
-  max-width: 360px;
-  margin: 16px auto;
+.help {
+  max-width: 350px;
+  margin: 10px auto;
+  color: #985075;
   font-size: 13px;
   line-height: 1.5;
 }
 
-.creator {
-  margin-top: 30px;
-  color: #a66a8c;
-  font-size: 10px;
-  letter-spacing: .5px;
-}
-
-@keyframes spawn {
-  from { scale: .65; opacity: .5; }
-  to { scale: 1; opacity: 1; }
-}
-
-@keyframes merge {
-  50% { scale: 1.12; }
-  100% { scale: 1; }
+.credit {
+  margin-top: 20px;
+  color: #a56c8b;
+  font-size: 11px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile { transition-duration: 0ms; }
+  .tile { transition: none; }
+  .tile.new { animation: none; }
 }
 </style>
 </head>
-<body>
 
+<body>
 <h1>GET NDP</h1>
-<p class="subtitle">Combine other high schools to reach the almighty NDP!</p>
+<p class="subtitle">merge the schools. get to NDP 💗</p>
 
 <div class="top">
-  <div class="score-box">
-    <span class="score-label">SCORE</span>
-    <span id="score">0</span>
-  </div>
-  <button id="restart">New Game</button>
+  <div class="score">SCORE <span id="score">0</span></div>
+  <button id="restart">New Game ↻</button>
 </div>
 
-<div id="game" class="game" aria-label="GET NDP game board">
-  <div class="grid" id="grid"></div>
-  <div class="tiles" id="tiles"></div>
+<div id="board" aria-label="2048 school logo game">
+  <div class="cells" id="cells"></div>
+  <div id="tiles"></div>
 </div>
 
-<div id="message" class="message">Use your arrow keys to play!</div>
-
-<p class="instructions">
-  Use your arrow keys or swipe to move the photos.
-  Matching schools combine into the next school.
-  Keep going until you reach NDP!
+<div class="message" id="message"></div>
+<p class="help">
+  Use your arrow keys to move the tiles, or swipe on the board.
+  Match two of the same school to combine them!
 </p>
 
-<div class="creator">Created by Cate Graham</div>
+<div class="credit">Created by Cate Graham</div>
 
 <script>
+const SIZE = 4;
+
 const schools = [
-  { value: 2, logo: "images_sus.jpg" },
-  { value: 4, logo: "ICS-Logo.jpg" },
-  { value: 8, logo: "images_spn.png" },
-  { value: 16, logo: "images_maryvale.jpg" },
-  { value: 32, logo: "images.jpg" },
-  { value: 64, logo: "bryn-mawr-school.jpg" },
-  { value: 128, logo: "Rpcs_logo2.png" },
-  { value: 256, logo: "The_John_Carroll_School_Logo.jpeg" },
-  { value: 512, logo: "MHS_Seal_ONLY.jpg" },
-  { value: 1024, logo: "Mount_de_Sales_Academy_Logo.png" },
-  { value: 2048, logo: "images_ndp.jpg" }
+  { name: "St. Ursula's", image: "logos/images_sus.jpg" },
+  { name: "ICS", image: "logos/ICS-Logo.jpg" },
+  { name: "St. Philip Neri", image: "logos/images_spn.png" },
+  { name: "Maryvale", image: "logos/images_maryvale.jpg" },
+  { name: "Catholic High", image: "logos/images.jpg" },
+  { name: "Bryn Mawr", image: "logos/bryn-mawr-school.jpg" },
+  { name: "RCPS", image: "logos/Rpcs_logo2.png" },
+  { name: "John Carroll", image: "logos/The_John_Carroll_School_Logo.jpeg" },
+  { name: "Mercy", image: "logos/MHS_Seal_ONLY.jpg" },
+  { name: "Mount de Sales", image: "logos/Mount_de_Sales_Academy_Logo.png" },
+  { name: "NDP", image: "logos/images_ndp.jpg" }
 ];
 
-const SIZE = 4;
-const GAP = 8;
-const game = document.getElementById("game");
-const grid = document.getElementById("grid");
-const layer = document.getElementById("tiles");
-const scoreEl = document.getElementById("score");
+const board = document.getElementById("board");
+const tilesLayer = document.getElementById("tiles");
+const cellsLayer = document.getElementById("cells");
+const scoreDisplay = document.getElementById("score");
 const message = document.getElementById("message");
 
-let board = [];
+let grid = [];
 let score = 0;
 let nextId = 1;
-let busy = false;
-let won = false;
-let gameOver = false;
 let tileElements = new Map();
-let moveTimer;
+let gameOver = false;
+let won = false;
 
-for (let i = 0; i < 16; i++) {
+for (let i = 0; i < SIZE * SIZE; i++) {
   const cell = document.createElement("div");
-  cell.className = "empty";
-  grid.appendChild(cell);
+  cell.className = "cell";
+  cellsLayer.appendChild(cell);
 }
 
 function dimensions() {
-  const width = layer.clientWidth;
-  const tileSize = (width - GAP * 3) / SIZE;
-  return { tileSize, gap: GAP };
+  const gap = parseFloat(getComputedStyle(board).getPropertyValue("--gap")) || 9;
+  const width = tilesLayer.clientWidth;
+  const tileSize = (width - gap * (SIZE - 1)) / SIZE;
+  return { tileSize, gap };
 }
 
-
-function positionTile(el, index, animate = true) {
+function positionTile(el, index) {
   const { tileSize, gap } = dimensions();
   const row = Math.floor(index / SIZE);
   const col = index % SIZE;
 
-  const oldTransform = getComputedStyle(el).transform;
-  const targetTransform =
-    `translate(${col * (tileSize + gap)}px, ${row * (tileSize + gap)}px)`;
-
-  el.style.transition = "none";
   el.style.width = tileSize + "px";
   el.style.height = tileSize + "px";
-  el.style.transform = targetTransform;
-
-  if (animate && el.dataset.positioned === "true") {
-    el.animate(
-      [
-        { transform: oldTransform === "none" ? targetTransform : oldTransform },
-        { transform: targetTransform }
-      ],
-      {
-        duration: 180,
-        easing: "ease-in-out"
-      }
-    );
-  }
-
-  el.dataset.positioned = "true";
+  el.style.transform =
+    `translate(${col * (tileSize + gap)}px, ${row * (tileSize + gap)}px)`;
 }
 
+function makeTile(level) {
+  return { id: nextId++, level };
 }
 
-function createTile(tile) {
-  const school = schools.find(s => s.value === tile.value);
-  const el = document.createElement("div");
-  el.className = "tile spawn";
-  el.dataset.id = tile.id;
+function addRandomTile() {
+  const empty = [];
+  grid.forEach((tile, index) => {
+    if (!tile) empty.push(index);
+  });
 
-  const img = document.createElement("img");
-  img.src = "logos/" + school.logo;
-  img.alt = "";
-  img.draggable = false;
-  img.onerror = () => { img.style.visibility = "hidden"; };
+  if (!empty.length) return;
 
-  el.appendChild(img);
-  layer.appendChild(el);
-  tileElements.set(tile.id, el);
-  return el;
+  const index = empty[Math.floor(Math.random() * empty.length)];
+  grid[index] = makeTile(Math.random() < 0.9 ? 1 : 2);
 }
 
-function render(animate = true, mergedIds = []) {
-  const activeIds = new Set(board.filter(Boolean).map(t => t.id));
+function render() {
+  const activeIds = new Set();
+
+  grid.forEach((tile, index) => {
+    if (!tile) return;
+
+    activeIds.add(tile.id);
+    let el = tileElements.get(tile.id);
+
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "tile";
+
+      const img = document.createElement("img");
+      img.alt = "";
+      img.draggable = false;
+      el.appendChild(img);
+
+      img.src = schools[tile.level - 1].image;
+      img.onerror = () => {
+        img.alt = "Logo unavailable";
+      };
+
+      tilesLayer.appendChild(el);
+      tileElements.set(tile.id, el);
+
+      // Newly created tiles appear in place; existing tiles slide.
+      el.dataset.positioned = "false";
+      el.classList.add("new");
+    }
+
+    const img = el.querySelector("img");
+    const desiredImage = schools[tile.level - 1].image;
+
+    if (img.getAttribute("src") !== desiredImage) {
+      img.src = desiredImage;
+    }
+
+    positionTile(el, index);
+    el.dataset.positioned = "true";
+  });
 
   for (const [id, el] of tileElements) {
     if (!activeIds.has(id)) {
@@ -292,145 +306,104 @@ function render(animate = true, mergedIds = []) {
     }
   }
 
-  board.forEach((tile, index) => {
-    if (!tile) return;
-
-    let el = tileElements.get(tile.id);
-    if (!el) el = createTile(tile);
-
-    positionTile(el, index, animate);
-
-    if (mergedIds.includes(tile.id)) {
-      el.classList.remove("merge");
-      void el.offsetWidth;
-      el.classList.add("merge");
-    }
-  });
-
-  scoreEl.textContent = score;
-}
-
-function addTile() {
-  const empty = board
-    .map((tile, i) => tile === null ? i : -1)
-    .filter(i => i !== -1);
-
-  if (!empty.length) return;
-
-  const index = empty[Math.floor(Math.random() * empty.length)];
-  board[index] = {
-    id: nextId++,
-    value: Math.random() < .9 ? 2 : 4
-  };
-}
-
-function newGame() {
-  clearTimeout(moveTimer);
-  board = Array(16).fill(null);
-  score = 0;
-  nextId = 1;
-  busy = false;
-  won = false;
-  gameOver = false;
-  tileElements.forEach(el => el.remove());
-  tileElements.clear();
-  message.textContent = "Use your arrow keys to play!";
-  addTile();
-  addTile();
-  render(false);
+  scoreDisplay.textContent = score;
 }
 
 function slideLine(line) {
-  const items = line.filter(Boolean);
+  const values = line.filter(Boolean);
   const result = [];
-  const mergedIds = [];
+  let gained = 0;
 
-  for (let i = 0; i < items.length; i++) {
-    if (items[i + 1] &&
-        items[i].value === items[i + 1].value &&
-        items[i].value < 2048) {
-      const merged = {
-        id: nextId++,
-        value: items[i].value * 2
-      };
-
+  for (let i = 0; i < values.length; i++) {
+    if (i + 1 < values.length &&
+        values[i].level === values[i + 1].level) {
+      const merged = makeTile(values[i].level + 1);
       result.push(merged);
-      mergedIds.push(merged.id);
-      score += merged.value;
+      gained += Math.pow(2, merged.level);
       i++;
     } else {
-      result.push(items[i]);
+      result.push(values[i]);
     }
   }
 
   while (result.length < SIZE) result.push(null);
-  return { result, mergedIds };
+  return { result, gained };
+}
+
+function move(direction) {
+  if (gameOver) return;
+
+  const previous = grid.map(tile => tile ? { ...tile } : null);
+  let changed = false;
+  let gained = 0;
+
+  for (let lineIndex = 0; lineIndex < SIZE; lineIndex++) {
+    const indexes = [];
+
+    for (let step = 0; step < SIZE; step++) {
+      if (direction === "left") indexes.push(lineIndex * SIZE + step);
+      if (direction === "right") indexes.push(lineIndex * SIZE + (SIZE - 1 - step));
+      if (direction === "up") indexes.push(step * SIZE + lineIndex);
+      if (direction === "down") indexes.push((SIZE - 1 - step) * SIZE + lineIndex);
+    }
+
+    const line = indexes.map(index => grid[index]);
+    const { result, gained: lineScore } = slideLine(line);
+    gained += lineScore;
+
+    indexes.forEach((index, i) => {
+      grid[index] = result[i];
+    });
+  }
+
+  changed = grid.some((tile, i) =>
+    (tile?.id ?? null) !== (previous[i]?.id ?? null)
+  );
+
+  if (!changed) return;
+
+  score += gained;
+  addRandomTile();
+  render();
+
+  if (!won && grid.some(tile => tile && tile.level === schools.length)) {
+    won = true;
+    message.textContent = "YOU GOT NDP! 💗";
+  } else {
+    message.textContent = "";
+  }
+
+  if (!canMove()) {
+    gameOver = true;
+    message.textContent = won ? "YOU GOT NDP! 💗" : "Game over! Try again!";
+  }
 }
 
 function canMove() {
-  for (let i = 0; i < 16; i++) {
-    if (!board[i]) return true;
-    if (i % 4 < 3 && board[i].value === board[i + 1]?.value) return true;
-    if (i < 12 && board[i].value === board[i + 4]?.value) return true;
+  if (grid.some(tile => !tile)) return true;
+
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      const tile = grid[r * SIZE + c];
+      if (c < SIZE - 1 && tile.level === grid[r * SIZE + c + 1].level) return true;
+      if (r < SIZE - 1 && tile.level === grid[(r + 1) * SIZE + c].level) return true;
+    }
   }
   return false;
 }
 
-function move(direction) {
-  if (busy || gameOver || won) return;
-
-  const previous = board.map(t => t ? t.id + ":" + t.value : ".");
-  const next = Array(16).fill(null);
-  const mergedIds = [];
-
-  for (let lineIndex = 0; lineIndex < SIZE; lineIndex++) {
-    const line = [];
-
-    for (let p = 0; p < SIZE; p++) {
-      let index;
-      if (direction === "left") index = lineIndex * SIZE + p;
-      if (direction === "right") index = lineIndex * SIZE + (SIZE - 1 - p);
-      if (direction === "up") index = p * SIZE + lineIndex;
-      if (direction === "down") index = (SIZE - 1 - p) * SIZE + lineIndex;
-      line.push(board[index]);
-    }
-
-    const moved = slideLine(line);
-    mergedIds.push(...moved.mergedIds);
-
-    for (let p = 0; p < SIZE; p++) {
-      let index;
-      if (direction === "left") index = lineIndex * SIZE + p;
-      if (direction === "right") index = lineIndex * SIZE + (SIZE - 1 - p);
-      if (direction === "up") index = p * SIZE + lineIndex;
-      if (direction === "down") index = (SIZE - 1 - p) * SIZE + lineIndex;
-      next[index] = moved.result[p];
-    }
-  }
-
-  if (next.map(t => t ? t.id + ":" + t.value : ".").join(",") === previous.join(",")) {
-    return;
-  }
-
-  board = next;
-  busy = true;
-  render(true, mergedIds);
-
-  moveTimer = setTimeout(() => {
-    if (board.some(t => t && t.value === 2048)) {
-      won = true;
-      message.textContent = "You reached the almighty NDP!";
-    } else {
-      addTile();
-      if (!canMove()) {
-        gameOver = true;
-        message.textContent = "No moves left! Start a new game.";
-      }
-    }
-
-    render(true);
-    busy = false;
-  }, 145);
+function newGame() {
+  grid = Array(SIZE * SIZE).fill(null);
+  score = 0;
+  nextId = 1;
+  gameOver = false;
+  won = false;
+  tileElements.forEach(el => el.remove());
+  tileElements.clear();
+  message.textContent = "";
+  addRandomTile();
+  addRandomTile();
+  render();
 }
 
 document.addEventListener("keydown", event => {
@@ -447,17 +420,19 @@ document.addEventListener("keydown", event => {
   }
 });
 
-let startX = 0;
-let startY = 0;
+let touchStartX = 0;
+let touchStartY = 0;
 
-game.addEventListener("touchstart", event => {
-  startX = event.changedTouches[0].clientX;
-  startY = event.changedTouches[0].clientY;
+board.addEventListener("touchstart", event => {
+  const touch = event.changedTouches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
 }, { passive: true });
 
-game.addEventListener("touchend", event => {
-  const dx = event.changedTouches[0].clientX - startX;
-  const dy = event.changedTouches[0].clientY - startY;
+board.addEventListener("touchend", event => {
+  const touch = event.changedTouches[0];
+  const dx = touch.clientX - touchStartX;
+  const dy = touch.clientY - touchStartY;
 
   if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
 
@@ -470,7 +445,17 @@ game.addEventListener("touchend", event => {
 
 document.getElementById("restart").addEventListener("click", newGame);
 
-window.addEventListener("resize", () => render(false));
+window.addEventListener("resize", () => {
+  grid.forEach((tile, index) => {
+    if (tile) {
+      const el = tileElements.get(tile.id);
+      if (el) {
+        el.style.transition = "none";
+        positionTile(el, index);
+      }
+    }
+  });
+});
 
 newGame();
 </script>
